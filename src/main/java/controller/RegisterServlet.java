@@ -3,7 +3,6 @@ package controller;
 import dao.ParentDAO;
 import model.Parents;
 
-import jakarta.inject.Inject;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -11,12 +10,25 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 @WebServlet("/register")
 public class RegisterServlet extends HttpServlet {
+    private static final Logger LOGGER = Logger.getLogger(RegisterServlet.class.getName());
     
-    @Inject
     private ParentDAO parentDao;
+    
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        try {
+            parentDao = new ParentDAO();
+            LOGGER.info("RegisterServlet initialized successfully");
+        } catch (Exception ex) {
+            LOGGER.severe("Failed to initialize RegisterServlet: " + ex.getMessage());
+            throw new ServletException("RegisterServlet initialization failed", ex);
+        }
+    }
     
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -30,20 +42,39 @@ public class RegisterServlet extends HttpServlet {
         String fullName = req.getParameter("fullName");
         String phone = req.getParameter("phone");
         
-        if (parentDao.emailExists(email)) {
-            req.setAttribute("error", "Email already registered");
+        if (email == null || email.trim().isEmpty() || 
+            password == null || password.trim().isEmpty() || 
+            fullName == null || fullName.trim().isEmpty()) {
+            req.setAttribute("error", "Email, password, and full name are required");
             req.getRequestDispatcher("/auth/register.jsp").forward(req, resp);
             return;
         }
         
-        Parents parent = new Parents();
-        parent.setEmail(email);
-        parent.setPasswordHash(password);
-        parent.setFullName(fullName);
-        parent.setPhone(phone);
-        
-        parentDao.create(parent);
-        
-        resp.sendRedirect(req.getContextPath() + "/login?registered=true");
+        try {
+            if (parentDao.emailExists(email.trim())) {
+                req.setAttribute("error", "Email already registered");
+                req.getRequestDispatcher("/auth/register.jsp").forward(req, resp);
+                return;
+            }
+            
+            Parents parent = new Parents();
+            parent.setEmail(email.trim());
+            parent.setPasswordHash(password);
+            parent.setFullName(fullName.trim());
+            parent.setPhone(phone != null ? phone.trim() : null);
+            
+            boolean created = parentDao.create(parent);
+            if (created) {
+                resp.sendRedirect(req.getContextPath() + "/login?registered=true");
+            } else {
+                req.setAttribute("error", "Registration failed. Please try again.");
+                req.getRequestDispatcher("/auth/register.jsp").forward(req, resp);
+            }
+            
+        } catch (Exception ex) {
+            LOGGER.severe("Error during registration for email: " + email + " - " + ex.getMessage());
+            req.setAttribute("error", "Registration failed. Please try again later.");
+            req.getRequestDispatcher("/auth/register.jsp").forward(req, resp);
+        }
     }
 }

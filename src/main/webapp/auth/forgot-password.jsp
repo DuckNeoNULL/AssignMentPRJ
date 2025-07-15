@@ -1,12 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Kid Social</title>
+    <title>Forgot Password - Kid Social</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -161,10 +160,6 @@
             box-shadow: var(--shadow-md);
         }
 
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-
         .btn-primary:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -202,17 +197,7 @@
             text-decoration: underline;
         }
 
-        .forgot-password {
-            text-align: right;
-            margin-top: calc(var(--spacing-unit) / 2);
-        }
-
-        .forgot-password .auth-link {
-            font-size: 0.875rem;
-            font-weight: 400;
-        }
-
-        .register-link {
+        .back-to-login {
             text-align: center;
             margin-top: calc(var(--spacing-unit) * 1.5);
             padding-top: calc(var(--spacing-unit) * 1.5);
@@ -254,35 +239,12 @@
             }
             
             .auth-card {
-                padding: calc(var(--spacing-unit) * 1.5);
+                padding: var(--spacing-unit);
             }
             
             .auth-title {
                 font-size: 1.5rem;
             }
-        }
-
-        @media (min-width: 768px) {
-            .auth-card {
-                padding: calc(var(--spacing-unit) * 2.5);
-            }
-        }
-
-        /* Accessibility */
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-
-        /* Focus visible for keyboard navigation */
-        .form-control:focus-visible,
-        .btn-primary:focus-visible,
-        .auth-link:focus-visible {
-            outline: 2px solid var(--primary-color);
-            outline-offset: 2px;
         }
     </style>
 </head>
@@ -291,8 +253,8 @@
         <div class="auth-card">
             <!-- Header -->
             <div class="auth-header">
-                <h1 class="auth-title">Welcome Back</h1>
-                <p class="auth-subtitle">Sign in to your Kid Social account</p>
+                <h1 class="auth-title">Forgot Password</h1>
+                <p class="auth-subtitle">Enter your email to receive reset instructions</p>
             </div>
 
             <!-- Success Message -->
@@ -311,8 +273,8 @@
                 </div>
             </c:if>
 
-            <!-- Login Form -->
-            <form action="${pageContext.request.contextPath}/login" method="post" novalidate>
+            <!-- Forgot Password Form -->
+            <form action="${pageContext.request.contextPath}/forgot-password" method="post" novalidate>
                 <div class="form-group">
                     <label for="email" class="form-label">Email Address</label>
                     <input 
@@ -320,39 +282,21 @@
                         id="email" 
                         name="email" 
                         class="form-control" 
-                        placeholder="Enter your email"
+                        placeholder="Enter your email address"
                         required 
                         autocomplete="email"
-                        aria-describedby="email-error"
                     >
                 </div>
 
-                <div class="form-group">
-                    <label for="password" class="form-label">Password</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        class="form-control" 
-                        placeholder="Enter your password"
-                        required 
-                        autocomplete="current-password"
-                        aria-describedby="password-error"
-                    >
-                    <div class="forgot-password">
-                        <a href="${pageContext.request.contextPath}/forgot-password" class="auth-link">Forgot password?</a>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-primary" id="loginBtn">
-                    Sign In
+                <button type="submit" class="btn-primary" id="forgotPasswordBtn">
+                    Send Reset Instructions
                 </button>
             </form>
 
-            <!-- Register Link -->
-            <div class="register-link">
-                Don't have an account? 
-                <a href="${pageContext.request.contextPath}/register" class="auth-link">Create one</a>
+            <!-- Back to Login Link -->
+            <div class="back-to-login">
+                Remember your password? 
+                <a href="${pageContext.request.contextPath}/login" class="auth-link">Back to Login</a>
             </div>
         </div>
     </div>
@@ -362,24 +306,23 @@
     
     <script>
         // Form submission with loading state
-        document.getElementById('loginBtn').addEventListener('click', function(e) {
+        document.getElementById('forgotPasswordBtn').addEventListener('click', function(e) {
             const form = this.closest('form');
             const email = form.querySelector('#email').value.trim();
-            const password = form.querySelector('#password').value.trim();
             
-            if (email && password) {
+            if (email) {
                 this.classList.add('btn-loading');
                 this.disabled = true;
-                this.textContent = 'Signing in...';
+                this.textContent = 'Sending...';
             }
         });
 
         // Remove loading state if form validation fails
         document.querySelector('form').addEventListener('invalid', function() {
-            const btn = document.getElementById('loginBtn');
+            const btn = document.getElementById('forgotPasswordBtn');
             btn.classList.remove('btn-loading');
             btn.disabled = false;
-            btn.textContent = 'Sign In';
+            btn.textContent = 'Send Reset Instructions';
         }, true);
     </script>
 </body>

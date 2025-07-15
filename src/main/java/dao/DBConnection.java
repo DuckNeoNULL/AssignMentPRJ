@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package dao;
 
 import java.sql.Connection;
@@ -11,28 +7,56 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DBConnection {
-    public static String driverName = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-    public static String dbURL = "jdbc:sqlserver://localhost:1433;databaseName=Sp25_DemoPRJ;";
-    public static String userDB = "sa";
-    public static String passDB = "123";
+    private static final Logger LOGGER = Logger.getLogger(DBConnection.class.getName());
     
-    public static Connection getConnection(){
-        Connection con = null;
-        try{
-            Class.forName(driverName);
-            con = DriverManager.getConnection(dbURL, userDB, passDB);
-            return con;
-        } catch(Exception ex){
-            Logger.getLogger(DBConnection.class.getName()).log(Level.SEVERE, null, ex);
+    public static final String DRIVER_NAME = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+    public static final String DB_URL = "jdbc:sqlserver://localhost:1433;databaseName=KidSocialDB;encrypt=true;trustServerCertificate=true";
+    public static final String USER_DB = "sa";
+    public static final String PASS_DB = "sa";
+    
+    private static boolean driverLoaded = false;
+    
+    static {
+        loadDriver();
+    }
+    
+    private static synchronized void loadDriver() {
+        if (!driverLoaded) {
+            try {
+                Class.forName(DRIVER_NAME);
+                driverLoaded = true;
+                LOGGER.info("SQL Server JDBC driver loaded successfully");
+            } catch (ClassNotFoundException ex) {
+                LOGGER.log(Level.SEVERE, "CRITICAL: Failed to load SQL Server JDBC driver. Check if mssql-jdbc JAR is in classpath.", ex);
+                driverLoaded = false;
+            }
+        }
+    }
+    
+    public static Connection getConnection() {
+        if (!driverLoaded) {
+            LOGGER.severe("Cannot get connection: JDBC driver not loaded");
+            return null;
+        }
+        
+        try {
+            Connection con = DriverManager.getConnection(DB_URL, USER_DB, PASS_DB);
+            if (con != null && !con.isClosed()) {
+                LOGGER.fine("Database connection established successfully");
+                return con;
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.WARNING, "Failed to establish database connection: " + ex.getMessage(), ex);
         }
         return null;
     }
-    public static void main(String[] args) {
-        try(Connection con = getConnection()){
-            if(con!=null)
-                System.out.println(" Connect to Sp25_DemoPRJ Success");
-        } catch(SQLException ex){
-            Logger.getLogger(DBConnection.class.getName()).log(Level.SEVERE, null, ex);
+    
+    public static boolean testConnection() {
+        try (Connection con = getConnection()) {
+            return con != null && !con.isClosed();
+        } catch (SQLException ex) {
+            LOGGER.log(Level.WARNING, "Connection test failed", ex);
+            return false;
         }
     }
 }

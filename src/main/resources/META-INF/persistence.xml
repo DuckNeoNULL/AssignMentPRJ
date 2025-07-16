@@ -7,10 +7,16 @@
     <property name="hibernate.hbm2ddl.auto" value="update"/>
     <property name="hibernate.show_sql" value="true"/>
     <property name="hibernate.format_sql" value="true"/>
-    <class>model.Courses</class>
     <class>model.Children</class>
-    <class>model.Posts</class>
     <class>model.Parents</class>
+    <class>model.Drawings</class>
+    <class>model.BookSearches</class>
+    <class>model.SensitiveKeywords</class>
+    <class>model.Activities</class>
+    <class>model.Courses</class>
+    <class>model.RecommendedBooks</class>
+    <class>model.Posts</class>
+    <class>model.ContentReports</class>
     <properties/>
   </persistence-unit>
 </persistence>

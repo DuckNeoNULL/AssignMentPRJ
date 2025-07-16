@@ -22,12 +22,12 @@ import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 /**
  *
- * @author ADMIN
+ * @author Admin
  */
 @Entity
 @Table(name = "Children")
@@ -62,10 +62,16 @@ public class Children implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "childId")
-    private Collection<Posts> postsCollection;
+    private List<Activities> activitiesList;
+    @OneToMany(mappedBy = "childId")
+    private List<BookSearches> bookSearchesList;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "childId")
+    private List<Posts> postsList;
     @JoinColumn(name = "parent_id", referencedColumnName = "parent_id")
     @ManyToOne(optional = false)
     private Parents parentId;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "childId")
+    private List<Drawings> drawingsList;
 
     public Children() {
     }
@@ -120,12 +126,28 @@ public class Children implements Serializable {
         this.createdAt = createdAt;
     }
 
-    public Collection<Posts> getPostsCollection() {
-        return postsCollection;
+    public List<Activities> getActivitiesList() {
+        return activitiesList;
     }
 
-    public void setPostsCollection(Collection<Posts> postsCollection) {
-        this.postsCollection = postsCollection;
+    public void setActivitiesList(List<Activities> activitiesList) {
+        this.activitiesList = activitiesList;
+    }
+
+    public List<BookSearches> getBookSearchesList() {
+        return bookSearchesList;
+    }
+
+    public void setBookSearchesList(List<BookSearches> bookSearchesList) {
+        this.bookSearchesList = bookSearchesList;
+    }
+
+    public List<Posts> getPostsList() {
+        return postsList;
+    }
+
+    public void setPostsList(List<Posts> postsList) {
+        this.postsList = postsList;
     }
 
     public Parents getParentId() {
@@ -134,6 +156,14 @@ public class Children implements Serializable {
 
     public void setParentId(Parents parentId) {
         this.parentId = parentId;
+    }
+
+    public List<Drawings> getDrawingsList() {
+        return drawingsList;
+    }
+
+    public void setDrawingsList(List<Drawings> drawingsList) {
+        this.drawingsList = drawingsList;
     }
 
     @Override

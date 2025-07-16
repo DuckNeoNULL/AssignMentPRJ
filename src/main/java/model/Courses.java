@@ -24,7 +24,7 @@ import java.util.Date;
 
 /**
  *
- * @author ADMIN
+ * @author Admin
  */
 @Entity
 @Table(name = "Courses")

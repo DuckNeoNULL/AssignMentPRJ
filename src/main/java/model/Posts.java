@@ -14,16 +14,18 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  *
- * @author ADMIN
+ * @author Admin
  */
 @Entity
 @Table(name = "Posts")
@@ -68,6 +70,8 @@ public class Posts implements Serializable {
     private Double moderationScore;
     @Column(name = "moderation_flag")
     private Boolean moderationFlag;
+    @OneToMany(mappedBy = "postId")
+    private List<ContentReports> contentReportsList;
     @JoinColumn(name = "child_id", referencedColumnName = "child_id")
     @ManyToOne(optional = false)
     private Children childId;
@@ -152,6 +156,14 @@ public class Posts implements Serializable {
 
     public void setModerationFlag(Boolean moderationFlag) {
         this.moderationFlag = moderationFlag;
+    }
+
+    public List<ContentReports> getContentReportsList() {
+        return contentReportsList;
+    }
+
+    public void setContentReportsList(List<ContentReports> contentReportsList) {
+        this.contentReportsList = contentReportsList;
     }
 
     public Children getChildId() {

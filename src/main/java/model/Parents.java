@@ -20,12 +20,12 @@ import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 /**
  *
- * @author ADMIN
+ * @author Admin
  */
 @Entity
 @Table(name = "Parents")
@@ -87,12 +87,20 @@ public class Parents implements Serializable {
     @Column(name = "reset_token_expiry")
     @Temporal(TemporalType.TIMESTAMP)
     private Date resetTokenExpiry;
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "reporterId")
+    private List<ContentReports> contentReportsList;
+    @OneToMany(mappedBy = "reviewedBy")
+    private List<ContentReports> contentReportsList1;
+    @OneToMany(mappedBy = "addedBy")
+    private List<SensitiveKeywords> sensitiveKeywordsList;
     @OneToMany(mappedBy = "approvedBy")
-    private Collection<Posts> postsCollection;
+    private List<Posts> postsList;
     @OneToMany(mappedBy = "createdBy")
-    private Collection<Courses> coursesCollection;
+    private List<Courses> coursesList;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "parentId")
-    private Collection<Children> childrenCollection;
+    private List<Children> childrenList;
+    @OneToMany(mappedBy = "approvedBy")
+    private List<Drawings> drawingsList;
 
     public Parents() {
     }
@@ -196,28 +204,60 @@ public class Parents implements Serializable {
         this.resetTokenExpiry = resetTokenExpiry;
     }
 
-    public Collection<Posts> getPostsCollection() {
-        return postsCollection;
+    public List<ContentReports> getContentReportsList() {
+        return contentReportsList;
     }
 
-    public void setPostsCollection(Collection<Posts> postsCollection) {
-        this.postsCollection = postsCollection;
+    public void setContentReportsList(List<ContentReports> contentReportsList) {
+        this.contentReportsList = contentReportsList;
     }
 
-    public Collection<Courses> getCoursesCollection() {
-        return coursesCollection;
+    public List<ContentReports> getContentReportsList1() {
+        return contentReportsList1;
     }
 
-    public void setCoursesCollection(Collection<Courses> coursesCollection) {
-        this.coursesCollection = coursesCollection;
+    public void setContentReportsList1(List<ContentReports> contentReportsList1) {
+        this.contentReportsList1 = contentReportsList1;
     }
 
-    public Collection<Children> getChildrenCollection() {
-        return childrenCollection;
+    public List<SensitiveKeywords> getSensitiveKeywordsList() {
+        return sensitiveKeywordsList;
     }
 
-    public void setChildrenCollection(Collection<Children> childrenCollection) {
-        this.childrenCollection = childrenCollection;
+    public void setSensitiveKeywordsList(List<SensitiveKeywords> sensitiveKeywordsList) {
+        this.sensitiveKeywordsList = sensitiveKeywordsList;
+    }
+
+    public List<Posts> getPostsList() {
+        return postsList;
+    }
+
+    public void setPostsList(List<Posts> postsList) {
+        this.postsList = postsList;
+    }
+
+    public List<Courses> getCoursesList() {
+        return coursesList;
+    }
+
+    public void setCoursesList(List<Courses> coursesList) {
+        this.coursesList = coursesList;
+    }
+
+    public List<Children> getChildrenList() {
+        return childrenList;
+    }
+
+    public void setChildrenList(List<Children> childrenList) {
+        this.childrenList = childrenList;
+    }
+
+    public List<Drawings> getDrawingsList() {
+        return drawingsList;
+    }
+
+    public void setDrawingsList(List<Drawings> drawingsList) {
+        this.drawingsList = drawingsList;
     }
 
     @Override

@@ -42,6 +42,7 @@ public class RegisterServlet extends HttpServlet {
         String fullName = req.getParameter("fullName");
         String phone = req.getParameter("phone");
         
+        // Validate required fields
         if (email == null || email.trim().isEmpty() || 
             password == null || password.trim().isEmpty() || 
             fullName == null || fullName.trim().isEmpty()) {
@@ -51,20 +52,26 @@ public class RegisterServlet extends HttpServlet {
         }
         
         try {
+            // Check if email already exists
             if (parentDao.emailExists(email.trim())) {
                 req.setAttribute("error", "Email already registered");
                 req.getRequestDispatcher("/auth/register.jsp").forward(req, resp);
                 return;
             }
             
+            // Create new parent object
             Parents parent = new Parents();
             parent.setEmail(email.trim());
-            parent.setPasswordHash(password);
+            parent.setPasswordHash(password); // Store plaintext password directly
             parent.setFullName(fullName.trim());
             parent.setPhone(phone != null ? phone.trim() : null);
+            parent.setRole("USER"); // Default role for new registrations
+            
+            LOGGER.info("Creating new user with email: " + email.trim() + ", password: " + password + ", role: USER");
             
             boolean created = parentDao.create(parent);
             if (created) {
+                LOGGER.info("New user registered successfully: " + email);
                 resp.sendRedirect(req.getContextPath() + "/login?registered=true");
             } else {
                 req.setAttribute("error", "Registration failed. Please try again.");

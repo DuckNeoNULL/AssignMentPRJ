@@ -60,8 +60,13 @@ public class ForgotPasswordServlet extends HttpServlet {
                 boolean updated = parentDao.updateVerificationCode(email, verificationCode);
                 
                 if (updated) {
-                    // Simulate email sending (log to console)
-                    System.out.println("Reset code sent to " + email + ": " + verificationCode);
+                    // For development: log the reset code (in production, send via email)
+                    System.out.println("=== PASSWORD RESET ===");
+                    System.out.println("Email: " + email);
+                    System.out.println("Current Password (plaintext): " + parent.getPasswordHash());
+                    System.out.println("Reset Code: " + verificationCode);
+                    System.out.println("=====================");
+                    
                     LOGGER.info("Password reset code generated for email: " + email);
                 } else {
                     LOGGER.warning("Failed to update verification code for email: " + email);
@@ -69,7 +74,7 @@ public class ForgotPasswordServlet extends HttpServlet {
             }
             
             // Always show the same success message for security
-            req.setAttribute("message", "If email exists, reset instructions have been sent");
+            req.setAttribute("message", "If email exists, reset instructions have been sent. Check console for details.");
             
         } catch (Exception ex) {
             LOGGER.severe("Error processing forgot password request for email: " + email + " - " + ex.getMessage());

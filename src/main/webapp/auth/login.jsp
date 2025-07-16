@@ -303,11 +303,56 @@
                 </div>
             </c:if>
 
-            <!-- Error Message -->
+            <!-- Check for logout parameter -->
+            <c:if test="${param.logout == 'true'}">
+                <div class="alert alert-info" role="alert">
+                    <i class="bi bi-info-circle-fill alert-icon" aria-hidden="true"></i>
+                    <span>You have been logged out successfully.</span>
+                </div>
+            </c:if>
+
+            <!-- Check for registered parameter -->
+            <c:if test="${param.registered == 'true'}">
+                <div class="alert alert-success" role="alert">
+                    <i class="bi bi-check-circle-fill alert-icon" aria-hidden="true"></i>
+                    <span>Registration successful! Please login with your credentials.</span>
+                </div>
+            </c:if>
+
+            <!-- Error Messages -->
             <c:if test="${not empty error}">
                 <div class="alert alert-error" role="alert">
                     <i class="bi bi-exclamation-triangle-fill alert-icon" aria-hidden="true"></i>
                     <span>${error}</span>
+                </div>
+            </c:if>
+
+            <!-- URL Parameter Error Messages -->
+            <c:if test="${param.error == 'login_required'}">
+                <div class="alert alert-warning" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill alert-icon" aria-hidden="true"></i>
+                    <span>Please log in to access that page.</span>
+                </div>
+            </c:if>
+
+            <c:if test="${param.error == 'session_expired'}">
+                <div class="alert alert-warning" role="alert">
+                    <i class="bi bi-clock-fill alert-icon" aria-hidden="true"></i>
+                    <span>Your session has expired. Please log in again.</span>
+                </div>
+            </c:if>
+
+            <c:if test="${param.error == 'invalid_session'}">
+                <div class="alert alert-warning" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill alert-icon" aria-hidden="true"></i>
+                    <span>Invalid session detected. Please log in again.</span>
+                </div>
+            </c:if>
+
+            <c:if test="${param.error == 'invalid_role'}">
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-shield-exclamation alert-icon" aria-hidden="true"></i>
+                    <span>Account has invalid role. Please contact administrator.</span>
                 </div>
             </c:if>
 
@@ -323,7 +368,7 @@
                         placeholder="Enter your email"
                         required 
                         autocomplete="email"
-                        aria-describedby="email-error"
+                        value="admin@gmail.com"
                     >
                 </div>
 
@@ -337,7 +382,7 @@
                         placeholder="Enter your password"
                         required 
                         autocomplete="current-password"
-                        aria-describedby="password-error"
+                        value="admin123"
                     >
                     <div class="forgot-password">
                         <a href="${pageContext.request.contextPath}/forgot-password" class="auth-link">Forgot password?</a>
@@ -361,26 +406,13 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
-        // Form submission with loading state
-        document.getElementById('loginBtn').addEventListener('click', function(e) {
-            const form = this.closest('form');
-            const email = form.querySelector('#email').value.trim();
-            const password = form.querySelector('#password').value.trim();
-            
-            if (email && password) {
-                this.classList.add('btn-loading');
-                this.disabled = true;
-                this.textContent = 'Signing in...';
-            }
+        // Simple form submission without loading state complications
+        document.querySelector('form').addEventListener('submit', function(e) {
+            console.log('Form submitted');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            console.log('Email:', email, 'Password:', password);
         });
-
-        // Remove loading state if form validation fails
-        document.querySelector('form').addEventListener('invalid', function() {
-            const btn = document.getElementById('loginBtn');
-            btn.classList.remove('btn-loading');
-            btn.disabled = false;
-            btn.textContent = 'Sign In';
-        }, true);
     </script>
 </body>
 </html>

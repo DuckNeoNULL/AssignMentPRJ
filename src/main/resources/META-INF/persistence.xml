@@ -15,8 +15,8 @@
     <class>model.Activities</class>
     <class>model.Courses</class>
     <class>model.RecommendedBooks</class>
-    <class>model.Posts</class>
     <class>model.ContentReports</class>
+    <class>model.Posts</class>
     <properties/>
   </persistence-unit>
 </persistence>

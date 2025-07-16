@@ -1,7 +1,7 @@
 ﻿-- Tạo CSDL
-CREATE DATABASE KidSocialDB;
+CREATE DATABASE KidSocialDBb;
 GO
-USE KidSocialDB;
+USE KidSocialDBb;
 GO
 
 -- 1. Bảng Parents
@@ -164,3 +164,5 @@ VALUES
 INSERT INTO Posts (child_id, content, image_url, is_approved)
 VALUES
 (1, N'Con thích vẽ tranh về thiên nhiên!', 'https://example.com/images/forest.png', 1);
+
+

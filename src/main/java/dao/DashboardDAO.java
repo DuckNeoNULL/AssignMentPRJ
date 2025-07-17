@@ -216,7 +216,7 @@ public class DashboardDAO {
         }
         return ((double) (current - previous) / previous) * 100.0;
     }
-    
+
     /**
      * Get total users count
      */
@@ -300,7 +300,7 @@ public class DashboardDAO {
                     parent.setEmail(rs.getString("email"));
                     parent.setFullName(rs.getString("full_name"));
                     parent.setStatus(rs.getString("status"));
-                    parent.setCreatedAt(rs.getTimestamp("created_at"));
+                    // parent.setCreatedAt(rs.getTimestamp("created_at")); // This line is for a different model
                     users.add(parent);
                 }
             }
@@ -393,7 +393,7 @@ public class DashboardDAO {
                     post.setTitle(rs.getString("title"));
                     post.setContent(rs.getString("content"));
                     post.setStatus(rs.getString("status"));
-                    post.setCreatedAt(rs.getTimestamp("created_at"));
+                    post.setPostTime(rs.getTimestamp("created_at").toLocalDateTime());
                     posts.add(post);
                 }
             }
@@ -418,7 +418,7 @@ public class DashboardDAO {
                     post.setTitle(rs.getString("title"));
                     post.setContent(rs.getString("content"));
                     post.setStatus(rs.getString("status"));
-                    post.setCreatedAt(rs.getTimestamp("created_at"));
+                    post.setPostTime(rs.getTimestamp("created_at").toLocalDateTime());
 
                     Children child = new Children();
                     child.setChildId(rs.getInt("child_id"));
@@ -539,12 +539,12 @@ public class DashboardDAO {
                      "LEFT JOIN Parents reporter ON cr.reporter_id = reporter.parent_id " +
                      "WHERE cr.status IN ('PENDING', 'REVIEWED') " +
                      "ORDER BY cr.created_at DESC";
-
+        
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
+            
             stmt.setInt(1, limit);
-
+            
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     ContentReports report = new ContentReports();
@@ -596,6 +596,21 @@ public class DashboardDAO {
             throw e;
         }
         return reports;
+    }
+
+    public void createPost(Posts post) throws SQLException {
+        String sql = "INSERT INTO Posts (child_id, title, content, image_url, status, created_at) VALUES (?, ?, ?, ?, ?, GETDATE())";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, post.getChild().getChildId());
+            ps.setString(2, post.getTitle());
+            ps.setString(3, post.getContent());
+            ps.setString(4, post.getImagePath());
+            ps.setString(5, post.getStatus());
+            
+            ps.executeUpdate();
+        }
     }
 
     /**

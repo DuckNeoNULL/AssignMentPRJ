@@ -2,11 +2,11 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Kid Social</title>
+    <title>Đăng nhập - Kid Social</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -289,115 +289,52 @@
 <body>
     <div class="auth-container">
         <div class="auth-card">
-            <!-- Header -->
             <div class="auth-header">
-                <h1 class="auth-title">Welcome Back</h1>
-                <p class="auth-subtitle">Sign in to your Kid Social account</p>
+                <h1 class="auth-title">Chào mừng trở lại!</h1>
+                <p class="auth-subtitle">Đăng nhập để tiếp tục đến Kid Social.</p>
             </div>
 
-            <!-- Success Message -->
-            <c:if test="${not empty message}">
-                <div class="alert alert-success" role="alert">
-                    <i class="bi bi-check-circle-fill alert-icon" aria-hidden="true"></i>
-                    <span>${message}</span>
-                </div>
-            </c:if>
-
-            <!-- Check for logout parameter -->
-            <c:if test="${param.logout == 'true'}">
-                <div class="alert alert-info" role="alert">
-                    <i class="bi bi-info-circle-fill alert-icon" aria-hidden="true"></i>
-                    <span>You have been logged out successfully.</span>
-                </div>
-            </c:if>
-
-            <!-- Check for registered parameter -->
-            <c:if test="${param.registered == 'true'}">
-                <div class="alert alert-success" role="alert">
-                    <i class="bi bi-check-circle-fill alert-icon" aria-hidden="true"></i>
-                    <span>Registration successful! Please login with your credentials.</span>
-                </div>
-            </c:if>
-
-            <!-- Error Messages -->
+            <%-- General error from servlet --%>
             <c:if test="${not empty error}">
-                <div class="alert alert-error" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill alert-icon" aria-hidden="true"></i>
-                    <span>${error}</span>
+                <div class="alert alert-error">
+                    <i class="bi bi-x-circle-fill alert-icon"></i>
+                    <c:out value="${error}"/>
                 </div>
             </c:if>
 
-            <!-- URL Parameter Error Messages -->
-            <c:if test="${param.error == 'login_required'}">
-                <div class="alert alert-warning" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill alert-icon" aria-hidden="true"></i>
-                    <span>Please log in to access that page.</span>
+            <%-- Success message from another page (e.g., registration) --%>
+            <c:if test="${param.registered == 'true'}">
+                 <div class="alert alert-success">
+                     <i class="bi bi-check-circle-fill alert-icon"></i>
+                     <span>Đăng ký thành công! Vui lòng đăng nhập.</span>
+                </div>
+            </c:if>
+            <c:if test="${not empty param.success_message}">
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle-fill alert-icon"></i>
+                    <c:out value="${param.success_message}"/>
                 </div>
             </c:if>
 
-            <c:if test="${param.error == 'session_expired'}">
-                <div class="alert alert-warning" role="alert">
-                    <i class="bi bi-clock-fill alert-icon" aria-hidden="true"></i>
-                    <span>Your session has expired. Please log in again.</span>
-                </div>
-            </c:if>
-
-            <c:if test="${param.error == 'invalid_session'}">
-                <div class="alert alert-warning" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill alert-icon" aria-hidden="true"></i>
-                    <span>Invalid session detected. Please log in again.</span>
-                </div>
-            </c:if>
-
-            <c:if test="${param.error == 'invalid_role'}">
-                <div class="alert alert-danger" role="alert">
-                    <i class="bi bi-shield-exclamation alert-icon" aria-hidden="true"></i>
-                    <span>Account has invalid role. Please contact administrator.</span>
-                </div>
-            </c:if>
-
-            <!-- Login Form -->
-            <form action="${pageContext.request.contextPath}/login" method="post" novalidate>
+            <form id="login-form" action="${pageContext.request.contextPath}/login" method="post">
                 <div class="form-group">
-                    <label for="email" class="form-label">Email Address</label>
-                    <input 
-                        type="email" 
-                        id="email" 
-                        name="email" 
-                        class="form-control" 
-                        placeholder="Enter your email"
-                        required 
-                        autocomplete="email"
-                        value="admin@gmail.com"
-                    >
+                    <label for="email" class="form-label">Địa chỉ Email</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="you@example.com" required autofocus>
                 </div>
 
                 <div class="form-group">
-                    <label for="password" class="form-label">Password</label>
-                    <input 
-                        type="password" 
-                        id="password" 
-                        name="password" 
-                        class="form-control" 
-                        placeholder="Enter your password"
-                        required 
-                        autocomplete="current-password"
-                        value="admin123"
-                    >
+                    <label for="password" class="form-label">Mật khẩu</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Nhập mật khẩu của bạn" required>
                     <div class="forgot-password">
-                        <a href="${pageContext.request.contextPath}/forgot-password" class="auth-link">Forgot password?</a>
+                        <a href="${pageContext.request.contextPath}/auth/forgot-password.jsp" class="auth-link">Quên mật khẩu?</a>
                     </div>
                 </div>
 
-                <button type="submit" class="btn-primary" id="loginBtn">
-                    Sign In
-                </button>
+                <button type="submit" class="btn btn-primary">Đăng nhập</button>
             </form>
 
-            <!-- Register Link -->
             <div class="register-link">
-                Don't have an account? 
-                <a href="${pageContext.request.contextPath}/register" class="auth-link">Create one</a>
+                Chưa có tài khoản? <a href="${pageContext.request.contextPath}/auth/register.jsp" class="auth-link">Đăng ký ngay</a>
             </div>
         </div>
     </div>

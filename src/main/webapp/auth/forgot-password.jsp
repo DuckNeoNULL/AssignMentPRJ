@@ -1,11 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forgot Password - Kid Social</title>
+    <title>Quên Mật khẩu - Kid Social</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -253,8 +253,8 @@
         <div class="auth-card">
             <!-- Header -->
             <div class="auth-header">
-                <h1 class="auth-title">Forgot Password</h1>
-                <p class="auth-subtitle">Enter your email to receive reset instructions</p>
+                <h1 class="auth-title">Quên Mật khẩu?</h1>
+                <p class="auth-subtitle">Đừng lo lắng! Nhập email của bạn và chúng tôi sẽ gửi cho bạn một liên kết để đặt lại mật khẩu.</p>
             </div>
 
             <!-- Success Message -->
@@ -276,27 +276,27 @@
             <!-- Forgot Password Form -->
             <form action="${pageContext.request.contextPath}/forgot-password" method="post" novalidate>
                 <div class="form-group">
-                    <label for="email" class="form-label">Email Address</label>
+                    <label for="email" class="form-label">Địa chỉ Email</label>
                     <input 
                         type="email" 
                         id="email" 
                         name="email" 
                         class="form-control" 
-                        placeholder="Enter your email address"
+                        placeholder="you@example.com"
                         required 
                         autocomplete="email"
                     >
                 </div>
 
                 <button type="submit" class="btn-primary" id="forgotPasswordBtn">
-                    Send Reset Instructions
+                    Gửi liên kết đặt lại
                 </button>
             </form>
 
             <!-- Back to Login Link -->
             <div class="back-to-login">
-                Remember your password? 
-                <a href="${pageContext.request.contextPath}/login" class="auth-link">Back to Login</a>
+                Nhớ mật khẩu của bạn? 
+                <a href="${pageContext.request.contextPath}/auth/login.jsp" class="auth-link">Quay lại đăng nhập</a>
             </div>
         </div>
     </div>

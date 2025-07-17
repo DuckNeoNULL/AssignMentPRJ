@@ -4,99 +4,45 @@
  */
 package model;
 
-import jakarta.persistence.Basic;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
-import jakarta.validation.constraints.Size;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDateTime;
 
 /**
  *
- * @author Admin
+ * @author FPT
  */
-@Entity
-@Table(name = "Posts")
-@NamedQueries({
-    @NamedQuery(name = "Posts.findAll", query = "SELECT p FROM Posts p"),
-    @NamedQuery(name = "Posts.findByPostId", query = "SELECT p FROM Posts p WHERE p.postId = :postId"),
-    @NamedQuery(name = "Posts.findByContent", query = "SELECT p FROM Posts p WHERE p.content = :content"),
-    @NamedQuery(name = "Posts.findByImageUrl", query = "SELECT p FROM Posts p WHERE p.imageUrl = :imageUrl"),
-    @NamedQuery(name = "Posts.findByIsApproved", query = "SELECT p FROM Posts p WHERE p.isApproved = :isApproved"),
-    @NamedQuery(name = "Posts.findByApprovalDate", query = "SELECT p FROM Posts p WHERE p.approvalDate = :approvalDate"),
-    @NamedQuery(name = "Posts.findByCreatedAt", query = "SELECT p FROM Posts p WHERE p.createdAt = :createdAt"),
-    @NamedQuery(name = "Posts.findByUpdatedAt", query = "SELECT p FROM Posts p WHERE p.updatedAt = :updatedAt"),
-    @NamedQuery(name = "Posts.findByModerationScore", query = "SELECT p FROM Posts p WHERE p.moderationScore = :moderationScore"),
-    @NamedQuery(name = "Posts.findByModerationFlag", query = "SELECT p FROM Posts p WHERE p.moderationFlag = :moderationFlag")})
-public class Posts implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
-    @Column(name = "post_id")
-    private Integer postId;
-    @Size(max = 255)
-    @Column(name = "title")
+public class Posts {
+    private int postId;
     private String title;
-    @Size(max = 2147483647)
-    @Column(name = "content")
     private String content;
-    @Size(max = 255)
-    @Column(name = "image_url")
-    private String imageUrl;
-    @Column(name = "is_approved")
-    private Boolean isApproved;
-    @Column(name = "approval_date")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date approvalDate;
-    @Column(name = "created_at")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date createdAt;
-    @Column(name = "updated_at")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date updatedAt;
-    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
-    @Column(name = "moderation_score")
-    private Double moderationScore;
-    @Column(name = "moderation_flag")
-    private Boolean moderationFlag;
-    @Size(max = 50)
-    @Column(name = "status")
+    private String imagePath;
+    private LocalDateTime postTime;
     private String status;
-    @OneToMany(mappedBy = "post")
-    private List<ContentReports> contentReportsList;
-    @JoinColumn(name = "child_id", referencedColumnName = "child_id")
-    @ManyToOne(optional = false)
+    private String postType;
+    private int childId;
     private Children child;
-    @JoinColumn(name = "approved_by", referencedColumnName = "parent_id")
-    @ManyToOne
-    private Parents approvedBy;
+    private Parents parent;
 
     public Posts() {
     }
 
-    public Posts(Integer postId) {
+    public Posts(int postId, String title, String content, String imagePath, LocalDateTime postTime, String status, String postType, int childId, Children child, Parents parent) {
         this.postId = postId;
+        this.title = title;
+        this.content = content;
+        this.imagePath = imagePath;
+        this.postTime = postTime;
+        this.status = status;
+        this.postType = postType;
+        this.childId = childId;
+        this.child = child;
+        this.parent = parent;
     }
 
-    public Integer getPostId() {
+    public int getPostId() {
         return postId;
     }
 
-    public void setPostId(Integer postId) {
+    public void setPostId(int postId) {
         this.postId = postId;
     }
 
@@ -116,60 +62,20 @@ public class Posts implements Serializable {
         this.content = content;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getImagePath() {
+        return imagePath;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 
-    public Boolean getIsApproved() {
-        return isApproved;
+    public LocalDateTime getPostTime() {
+        return postTime;
     }
 
-    public void setIsApproved(Boolean isApproved) {
-        this.isApproved = isApproved;
-    }
-
-    public Date getApprovalDate() {
-        return approvalDate;
-    }
-
-    public void setApprovalDate(Date approvalDate) {
-        this.approvalDate = approvalDate;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public Double getModerationScore() {
-        return moderationScore;
-    }
-
-    public void setModerationScore(Double moderationScore) {
-        this.moderationScore = moderationScore;
-    }
-
-    public Boolean getModerationFlag() {
-        return moderationFlag;
-    }
-
-    public void setModerationFlag(Boolean moderationFlag) {
-        this.moderationFlag = moderationFlag;
+    public void setPostTime(LocalDateTime postTime) {
+        this.postTime = postTime;
     }
 
     public String getStatus() {
@@ -180,12 +86,20 @@ public class Posts implements Serializable {
         this.status = status;
     }
 
-    public List<ContentReports> getContentReportsList() {
-        return contentReportsList;
+    public String getPostType() {
+        return postType;
     }
 
-    public void setContentReportsList(List<ContentReports> contentReportsList) {
-        this.contentReportsList = contentReportsList;
+    public void setPostType(String postType) {
+        this.postType = postType;
+    }
+
+    public int getChildId() {
+        return childId;
+    }
+
+    public void setChildId(int childId) {
+        this.childId = childId;
     }
 
     public Children getChild() {
@@ -196,37 +110,13 @@ public class Posts implements Serializable {
         this.child = child;
     }
 
-    public Parents getApprovedBy() {
-        return approvedBy;
+    public Parents getParent() {
+        return parent;
     }
 
-    public void setApprovedBy(Parents approvedBy) {
-        this.approvedBy = approvedBy;
+    public void setParent(Parents parent) {
+        this.parent = parent;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (postId != null ? postId.hashCode() : 0);
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof Posts)) {
-            return false;
-        }
-        Posts other = (Posts) object;
-        if ((this.postId == null && other.postId != null) || (this.postId != null && !this.postId.equals(other.postId))) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public String toString() {
-        return "model.Posts[ postId=" + postId + " ]";
-    }
     
 }

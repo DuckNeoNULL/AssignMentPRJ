@@ -11,8 +11,13 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.logging.Logger;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import util.EmailService;
+import util.OtpGenerator;
+import java.util.logging.Level;
 
-@WebServlet("/register")
+@WebServlet(name = "RegisterServlet", urlPatterns = {"/register"})
 public class RegisterServlet extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger(RegisterServlet.class.getName());
     
@@ -39,49 +44,64 @@ public class RegisterServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String email = req.getParameter("email");
         String password = req.getParameter("password");
+        String confirmPassword = req.getParameter("confirmPassword");
         String fullName = req.getParameter("fullName");
         String phone = req.getParameter("phone");
         
-        // Validate required fields
-        if (email == null || email.trim().isEmpty() || 
-            password == null || password.trim().isEmpty() || 
-            fullName == null || fullName.trim().isEmpty()) {
-            req.setAttribute("error", "Email, password, and full name are required");
+        // Basic validation
+        if (fullName == null || email == null || password == null || confirmPassword == null ||
+            fullName.trim().isEmpty() || email.trim().isEmpty() || 
+            password.trim().isEmpty() || confirmPassword.trim().isEmpty()) {
+            req.setAttribute("error", "Please fill in all required fields.");
             req.getRequestDispatcher("/auth/register.jsp").forward(req, resp);
             return;
         }
-        
+
+        if (!password.equals(confirmPassword)) {
+            req.setAttribute("error", "Passwords do not match.");
+            req.getRequestDispatcher("/auth/register.jsp").forward(req, resp);
+            return;
+        }
+
+        ParentDAO parentDAO = new ParentDAO();
         try {
-            // Check if email already exists
-            if (parentDao.emailExists(email.trim())) {
-                req.setAttribute("error", "Email already registered");
+            if (parentDAO.emailExists(email)) {
+                req.setAttribute("error", "An account with this email already exists.");
                 req.getRequestDispatcher("/auth/register.jsp").forward(req, resp);
                 return;
             }
-            
-            // Create new parent object
-            Parents parent = new Parents();
-            parent.setEmail(email.trim());
-            parent.setPassword(password); // Changed from setPasswordHash
-            parent.setFullName(fullName.trim());
-            parent.setPhone(phone != null ? phone.trim() : null);
-            parent.setRole("USER"); // Default role for new registrations
-            parent.setStatus("ACTIVE"); // Set default status
-            
-            LOGGER.info("Creating new user with email: " + email.trim() + ", role: USER");
-            
-            boolean created = parentDao.create(parent);
+
+            // Create parent object with UNVERIFIED status
+            Parents newParent = new Parents();
+            newParent.setFullName(fullName);
+            newParent.setEmail(email);
+            newParent.setPassword(password); // Storing plain text, consider hashing
+            newParent.setPhone(phone);
+            newParent.setStatus("UNVERIFIED");
+
+            boolean created = parentDAO.create(newParent);
+
             if (created) {
-                LOGGER.info("New user registered successfully: " + email);
-                resp.sendRedirect(req.getContextPath() + "/login?registered=true");
+                // Generate and send OTP
+                String otp = OtpGenerator.generateOtp();
+                Timestamp expiryTime = Timestamp.valueOf(LocalDateTime.now().plusMinutes(10));
+                
+                parentDAO.saveVerificationCode(email, otp, expiryTime);
+
+                EmailService emailService = new EmailService();
+                emailService.sendOtpEmail(email, otp);
+
+                // Redirect to OTP verification page
+                resp.sendRedirect(req.getContextPath() + "/auth/verify-otp.jsp?email=" + email);
+
             } else {
-                req.setAttribute("error", "Registration failed. Please try again.");
+                req.setAttribute("error", "An unexpected error occurred. Please try again.");
                 req.getRequestDispatcher("/auth/register.jsp").forward(req, resp);
             }
-            
-        } catch (Exception ex) {
-            LOGGER.severe("Error during registration for email: " + email + " - " + ex.getMessage());
-            req.setAttribute("error", "Registration failed. Please try again later.");
+
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Registration error", e);
+            req.setAttribute("error", "A database error occurred.");
             req.getRequestDispatcher("/auth/register.jsp").forward(req, resp);
         }
     }

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.sql.Date;
 
 public class ChildrenDAO {
     private static final Logger LOGGER = Logger.getLogger(ChildrenDAO.class.getName());
@@ -72,5 +73,27 @@ public class ChildrenDAO {
             LOGGER.log(Level.SEVERE, "Error finding child by ID: " + childId, e);
         }
         return child;
+    }
+
+    public boolean createChild(Children child) throws SQLException {
+        String sql = "INSERT INTO Children (parent_id, full_name, date_of_birth, gender) VALUES (?, ?, ?, ?)";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, child.getParent().getParentId());
+            ps.setString(2, child.getFullName());
+            ps.setDate(3, new java.sql.Date(child.getDateOfBirth().getTime()));
+            ps.setString(4, child.getGender());
+
+            int rowsAffected = ps.executeUpdate();
+            if (rowsAffected > 0) {
+                LOGGER.info("A new child was created successfully for parent ID: " + child.getParent().getParentId());
+                return true;
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error creating child for parent ID: " + child.getParent().getParentId(), e);
+            throw e;
+        }
+        return false;
     }
 } 

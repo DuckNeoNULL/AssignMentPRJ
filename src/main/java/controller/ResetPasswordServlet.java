@@ -69,7 +69,7 @@ public class ResetPasswordServlet extends HttpServlet {
             }
             
             // Update password
-            boolean updated = parentDao.updatePassword(email.trim(), newPassword.trim());
+            boolean updated = parentDao.updatePassword(parent.getParentId(), newPassword.trim());
             
             if (updated) {
                 // Clear verification code

@@ -11,10 +11,14 @@
     <welcome-file-list>
         <welcome-file>auth/login.jsp</welcome-file>
     </welcome-file-list>
+
+    <!-- All servlets are now configured via @WebServlet annotations. -->
+    <!-- No <servlet> or <servlet-mapping> declarations are needed here for them. -->
     
-    <!-- Session Configuration -->
     <session-config>
-        <session-timeout>30</session-timeout>
+        <session-timeout>
+            30
+        </session-timeout>
     </session-config>
     
     <!-- Error Pages -->

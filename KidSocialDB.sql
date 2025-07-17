@@ -25,16 +25,17 @@ CREATE TABLE dbo.Parents (
     full_name            NVARCHAR(100) NOT NULL,
     phone                NVARCHAR(20)  NULL,
     verification_code    NVARCHAR(10)  NULL,
+    verification_code_expiry DATETIME,
     is_verified          BIT           NOT NULL DEFAULT 0,
     verification_expiry  DATETIME2     NULL,
     role                 NVARCHAR(20)  NOT NULL DEFAULT 'USER',
-    status               NVARCHAR(20)  NOT NULL DEFAULT 'ACTIVE', -- Added status
+    status               NVARCHAR(20)  NOT NULL DEFAULT 'UNVERIFIED', -- Added status
     created_at           DATETIME2     NOT NULL DEFAULT GETDATE(),
     last_login           DATETIME2     NULL,
     reset_token          NVARCHAR(255) NULL,
     reset_token_expiry   DATETIME2     NULL,
     CONSTRAINT CK_Parents_Role   CHECK (role IN ('USER','ADMIN')),
-    CONSTRAINT CK_Parents_Status CHECK (status IN ('ACTIVE', 'SUSPENDED', 'DELETED')),
+    CONSTRAINT CK_Parents_Status CHECK (status IN ('UNVERIFIED', 'ACTIVE', 'SUSPENDED', 'DELETED')),
     CONSTRAINT CK_Parents_Email  CHECK (email LIKE '%@%.%')
 );
 GO
@@ -50,21 +51,17 @@ CREATE TABLE dbo.Children (
 GO
 
 -- Posts Table
-CREATE TABLE dbo.Posts (
-    post_id          INT           IDENTITY(1,1) PRIMARY KEY,
-    child_id         INT           NOT NULL REFERENCES dbo.Children(child_id),
-    title            NVARCHAR(255) NULL, -- Added title
-    content          NVARCHAR(MAX) NOT NULL,
-    image_url        NVARCHAR(255) NULL,
-    status           NVARCHAR(50)  NOT NULL DEFAULT 'PENDING', -- Added status
-    is_approved      BIT           DEFAULT 0,
-    approved_by      INT           NULL REFERENCES dbo.Parents(parent_id),
-    approval_date    DATETIME2     NULL,
-    moderation_score FLOAT         NULL,
-    moderation_flag  BIT           DEFAULT 0,
-    created_at       DATETIME2     NOT NULL DEFAULT GETDATE(),
-    updated_at       DATETIME2     NULL,
-    CONSTRAINT CK_Posts_Status CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED'))
+DROP TABLE IF EXISTS Posts;
+CREATE TABLE Posts (
+    PostID INT PRIMARY KEY IDENTITY(1,1),
+    Title NVARCHAR(255),
+    Content NVARCHAR(MAX) NOT NULL,
+    ImagePath NVARCHAR(255),
+    PostTime DATETIME DEFAULT GETDATE(),
+    Status NVARCHAR(50) DEFAULT 'PENDING', -- PENDING, APPROVED, REJECTED
+    PostType NVARCHAR(50) DEFAULT 'POST', -- POST, STORY, DRAWING
+    ChildID INT,
+    FOREIGN KEY (ChildID) REFERENCES Children(ChildID)
 );
 GO
 

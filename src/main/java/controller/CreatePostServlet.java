@@ -58,10 +58,12 @@ public class CreatePostServlet extends HttpServlet {
         newPost.setContent(content);
         newPost.setChild(currentChild);
         newPost.setStatus("PENDING"); // All new posts need approval
+        newPost.setPostType("POST");
 
-        boolean success = postDAO.create(newPost);
+        boolean success = postDAO.createPost(newPost);
 
         if (success) {
+            session.setAttribute("message", "Bài viết của bạn đã được gửi đi duyệt!");
             // Redirect to a success page or back to the kid's home
             response.sendRedirect(request.getContextPath() + "/kid/home?childId=" + currentChild.getChildId() + "&post_success=true");
         } else {

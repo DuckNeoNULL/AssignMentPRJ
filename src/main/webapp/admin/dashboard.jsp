@@ -8,18 +8,18 @@
 </c:if>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Kid Social</title>
+    <title>Bảng điều khiển - Kid Social</title>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts (with Vietnamese subset) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap&subset=vietnamese" rel="stylesheet">
     
     <style>
         :root {
@@ -488,235 +488,133 @@
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <nav class="sidebar">
-        <div class="sidebar-header">
-            <a href="${pageContext.request.contextPath}/admin/dashboard" class="sidebar-brand">
-                <i class="bi bi-shield-check"></i>
-                Kid Social Admin
-            </a>
-        </div>
-        
-        <ul class="sidebar-nav list-unstyled">
-            <li class="nav-item">
-                <a href="${pageContext.request.contextPath}/admin/dashboard" class="nav-link active">
-                    <i class="bi bi-speedometer2"></i>
-                    Dashboard
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="${pageContext.request.contextPath}/admin/users" class="nav-link">
-                    <i class="bi bi-people"></i>
-                    Users
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="${pageContext.request.contextPath}/admin/posts" class="nav-link">
-                    <i class="bi bi-file-post"></i>
-                    Posts
-                    <c:if test="${pendingApprovals > 0}">
-                        <span class="nav-badge">${pendingApprovals}</span>
-                    </c:if>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="${pageContext.request.contextPath}/admin/reports" class="nav-link">
-                    <i class="bi bi-flag"></i>
-                    Reports
-                    <c:if test="${activeReports > 0}">
-                        <span class="nav-badge">${activeReports}</span>
-                    </c:if>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="${pageContext.request.contextPath}/admin/settings" class="nav-link">
-                    <i class="bi bi-gear"></i>
-                    Settings
-                </a>
-            </li>
-            <li class="nav-item mt-4">
-                <a href="${pageContext.request.contextPath}/logout" class="nav-link">
-                    <i class="bi bi-box-arrow-right"></i>
-                    Logout
-                </a>
-            </li>
-        </ul>
-    </nav>
+    <div class="admin-layout">
+        <c:set var="currentPage" value="dashboard" scope="request"/>
+        <%@ include file="includes/sidebar.jsp" %>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <h1 class="page-title">Dashboard</h1>
+        <div class="main-content">
+            <header class="header">
+                <div class="header-content">
+                    <h1 class="page-title">Bảng điều khiển Quản trị</h1>
+                    <div class="header-actions">
+                        <div class="user-info">
+                            <div class="user-avatar">
+                                <i class="bi bi-person-circle"></i>
+                            </div>
+                            <div class="user-details">
+                                <h6>${sessionScope.parentName}</h6>
+                                <small>${sessionScope.parentEmail}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="dashboard-content">
+                <div class="quick-actions">
+                    <a href="${pageContext.request.contextPath}/admin/export" class="quick-action-btn btn btn-primary">
+                        <i class="bi bi-download"></i> Xuất dữ liệu
+                    </a>
+                    <a href="${pageContext.request.contextPath}/admin/dashboard" class="quick-action-btn btn btn-outline-secondary">
+                        <i class="bi bi-arrow-clockwise"></i> Làm mới
+                    </a>
+                </div>
+
+                <!-- Stats Overview Section -->
+                <div class="stats-grid">
+                    <!-- Total Users Card -->
+                    <div class="stat-card">
+                        <div class="stat-icon bg-primary text-white"><i class="bi bi-people-fill"></i></div>
+                        <div class="stat-info">
+                            <h4>${stats.totalUsers}</h4>
+                            <p>Tổng số người dùng</p>
+                        </div>
+                    </div>
+                    <!-- Total Posts Card -->
+                    <div class="stat-card">
+                        <div class="stat-icon bg-info text-white"><i class="bi bi-file-earmark-text-fill"></i></div>
+                        <div class="stat-info">
+                            <h4>${stats.totalPosts}</h4>
+                            <p>Tổng số bài viết</p>
+                        </div>
+                    </div>
+                    <!-- Pending Posts Card -->
+                    <div class="stat-card">
+                        <div class="stat-icon bg-warning text-white"><i class="bi bi-clock-history"></i></div>
+                        <div class="stat-info">
+                            <h4>${stats.pendingPosts}</h4>
+                            <p>Bài viết chờ duyệt</p>
+                        </div>
+                    </div>
+                    <!-- Active Reports Card -->
+                    <div class="stat-card">
+                        <div class="stat-icon bg-danger text-white"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                        <div class="stat-info">
+                            <h4>${stats.activeReports}</h4>
+                            <p>Báo cáo đang xử lý</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Growth Analytics Section -->
+                <div class="row mb-4">
+                    <!-- User Growth -->
+                    <div class="col-md-6">
+                        <div class="chart-card">
+                            <h5>Tăng trưởng người dùng</h5>
+                            <p class="text-muted">So với tháng trước</p>
+                            <div class="growth-metric">
+                                <h2 class="${stats.userGrowthPercentage >= 0 ? 'text-success' : 'text-danger'}">
+                                    <i class="bi ${stats.userGrowthPercentage >= 0 ? 'bi-arrow-up-right' : 'bi-arrow-down-right'}"></i>
+                                    <fmt:formatNumber value="${stats.userGrowthPercentage}" maxFractionDigits="1"/>%
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Post Growth -->
+                    <div class="col-md-6">
+                        <div class="chart-card">
+                            <h5>Tăng trưởng bài viết</h5>
+                            <p class="text-muted">So với tháng trước</p>
+                            <div class="growth-metric">
+                                <h2 class="${stats.postGrowthPercentage >= 0 ? 'text-success' : 'text-danger'}">
+                                    <i class="bi ${stats.postGrowthPercentage >= 0 ? 'bi-arrow-up-right' : 'bi-arrow-down-right'}"></i>
+                                    <fmt:formatNumber value="${stats.postGrowthPercentage}" maxFractionDigits="1"/>%
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
-                <div class="header-actions">
-                    <form class="search-form" action="${pageContext.request.contextPath}/admin/search" method="GET">
-                        <i class="bi bi-search search-icon"></i>
-                        <input type="text" class="search-input" placeholder="Search users, posts..." name="q">
-                    </form>
-                    <div class="user-info">
-                        <div class="user-avatar">
-                            <c:choose>
-                                <c:when test="${not empty sessionScope.parentEmail}">
-                                    ${sessionScope.parentEmail.substring(0,1).toUpperCase()}
-                                </c:when>
-                                <c:otherwise>A</c:otherwise>
-                            </c:choose>
-                        </div>
-                        <div class="user-details">
-                            <h6>
-                                <c:choose>
-                                    <c:when test="${not empty sessionScope.parentEmail}">
-                                        ${sessionScope.parentEmail}
-                                    </c:when>
-                                    <c:otherwise>Administrator</c:otherwise>
-                                </c:choose>
-                            </h6>
-                            <small>${sessionScope.userRole}</small>
-                        </div>
+                <!-- Recent Activity Section -->
+                <div class="activity-card">
+                    <div class="card-header">
+                        <h5>Hoạt động gần đây</h5>
+                        <a href="#" class="view-all">Xem tất cả</a>
                     </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- Dashboard Content -->
-        <main class="dashboard-content">
-            <!-- Error Message -->
-            <c:if test="${not empty errorMessage}">
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    ${errorMessage}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            </c:if>
-
-            <!-- Quick Actions -->
-            <div class="quick-actions">
-                <a href="${pageContext.request.contextPath}/admin/posts?filter=pending" class="btn btn-warning quick-action-btn">
-                    <i class="bi bi-clock"></i>
-                    Review Pending Posts
-                </a>
-                <a href="${pageContext.request.contextPath}/admin/reports?filter=active" class="btn btn-danger quick-action-btn">
-                    <i class="bi bi-flag"></i>
-                    Handle Reports
-                </a>
-                <a href="${pageContext.request.contextPath}/admin/users?action=export" class="btn btn-outline-primary quick-action-btn">
-                    <i class="bi bi-download"></i>
-                    Export Data
-                </a>
-                <button class="btn btn-outline-secondary quick-action-btn" onclick="refreshDashboard()">
-                    <i class="bi bi-arrow-clockwise"></i>
-                    Refresh
-                </button>
-            </div>
-
-            <!-- Statistics Cards -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <h3>${stats.totalUsers}</h3>
-                        <div class="stat-icon-wrapper bg-primary-light text-primary">
-                            <i class="bi bi-people-fill"></i>
-                            </div>
-                            </div>
-                    <p class="stat-label">Total Users</p>
-                    <div class="stat-growth <c:if test='${stats.userGrowthPercentage < 0}'>text-danger</c:if><c:if test='${stats.userGrowthPercentage >= 0}'>text-success</c:if>">
-                        <i class="bi <c:if test='${stats.userGrowthPercentage < 0}'>bi-arrow-down</c:if><c:if test='${stats.userGrowthPercentage >= 0}'>bi-arrow-up</c:if>"></i>
-                        <fmt:formatNumber value="${Math.abs(stats.userGrowthPercentage)}" maxFractionDigits="1"/>% from last month
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <h3>${stats.totalPosts}</h3>
-                        <div class="stat-icon-wrapper bg-success-light text-success">
-                            <i class="bi bi-file-post"></i>
-                        </div>
-                    </div>
-                    <p class="stat-label">Total Posts</p>
-                    <div class="stat-growth <c:if test='${stats.postGrowthPercentage < 0}'>text-danger</c:if><c:if test='${stats.postGrowthPercentage >= 0}'>text-success</c:if>">
-                        <i class="bi <c:if test='${stats.postGrowthPercentage < 0}'>bi-arrow-down</c:if><c:if test='${stats.postGrowthPercentage >= 0}'>bi-arrow-up</c:if>"></i>
-                        <fmt:formatNumber value="${Math.abs(stats.postGrowthPercentage)}" maxFractionDigits="1"/>% from last month
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <h3>${stats.pendingPosts}</h3>
-                        <div class="stat-icon-wrapper bg-warning-light text-warning">
-                            <i class="bi bi-clock-history"></i>
-                            </div>
-                            </div>
-                    <p class="stat-label">Pending Approvals</p>
-                    <div class="stat-growth text-secondary">
-                        <i class="bi bi-arrow-right"></i>
-                        Awaiting review
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-header">
-                        <h3>${stats.activeReports}</h3>
-                        <div class="stat-icon-wrapper bg-danger-light text-danger">
-                            <i class="bi bi-flag-fill"></i>
-                            </div>
-                            </div>
-                    <p class="stat-label">Active Reports</p>
-                    <div class="stat-growth text-danger">
-                        <i class="bi bi-exclamation-circle"></i>
-                        <c:out value="${stats.newReportsToday}"/> new today
-                        </div>
-                        </div>
-                    </div>
-            <!-- End Stats Grid -->
-
-            <!-- Recent Activity -->
-            <div class="activity-card">
-                <div class="activity-header">
-                    <h3 class="activity-title">Recent Activity</h3>
-                    <div class="activity-actions">
-                        <button class="btn btn-outline-secondary btn-sm" onclick="refreshActivity()">
-                            <i class="bi bi-arrow-clockwise"></i>
-                        </button>
-                        <a href="${pageContext.request.contextPath}/admin/activity" class="btn btn-outline-primary btn-sm">
-                            View All
-                        </a>
-                    </div>
-                </div>
-
-                <div class="activity-list">
-                    <c:choose>
-                        <c:when test="${not empty recentActivities}">
-                            <c:forEach var="activity" items="${recentActivities}">
-                                <div class="activity-item">
-                                    <div class="activity-icon ${activity.iconColorClass}">
-                                        <i class="bi ${activity.iconClass}"></i>
-                                    </div>
-                                    <div class="activity-info">
-                                        <p class="activity-description">${activity.description}</p>
-                                        <small class="activity-timestamp">
-                                            <i class="bi bi-clock"></i> 
-                                            ${activity.timeAgo}
-                                        </small>
-                                    </div>
+                    <ul class="activity-list">
+                        <c:forEach var="activity" items="${recentActivities}">
+                            <li class="activity-item">
+                                <div class="activity-icon ${activity.iconColorClass}">
+                                    <i class="bi ${activity.iconClass}"></i>
                                 </div>
-                            </c:forEach>
-                        </c:when>
-                        <c:otherwise>
-                            <div class="text-center p-4">
-                                <i class="bi bi-moon-stars fs-2 text-secondary"></i>
-                                <p class="mt-2 text-secondary">No recent activity recorded.</p>
-                            </div>
-                        </c:otherwise>
-                    </c:choose>
+                                <div class="activity-content">
+                                    <p class="mb-0">
+                                        <strong><c:out value="${activity.adminName}"/></strong>
+                                        <c:out value="${activity.description}"/>
+                                    </p>
+                                    <small class="text-muted">${activity.timeAgo}</small>
+                                </div>
+                            </li>
+                        </c:forEach>
+                    </ul>
                 </div>
             </div>
-        </main>
+        </div>
     </div>
-
-    <!-- Bootstrap JS -->
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
         // Dashboard functionality

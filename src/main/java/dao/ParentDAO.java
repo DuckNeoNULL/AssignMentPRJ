@@ -196,13 +196,13 @@ public class ParentDAO {
         }
     }
     
-    public boolean updatePassword(String email, String newPassword) {
-        if (email == null || email.trim().isEmpty() || newPassword == null) {
-            LOGGER.warning("Cannot update password: invalid parameters");
+    public boolean updatePassword(int parentId, String newPassword) {
+        if (newPassword == null) {
+            LOGGER.warning("Cannot update password: new password is null");
             return false;
         }
         
-        String sql = "UPDATE Parents SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE email = ?";
+        String sql = "UPDATE Parents SET password = ? WHERE parent_id = ?";
         
         try (Connection con = DBConnection.getConnection()) {
             if (con == null) {
@@ -211,21 +211,96 @@ public class ParentDAO {
             }
             
             try (PreparedStatement ps = con.prepareStatement(sql)) {
-                ps.setString(1, newPassword); // Store plaintext password directly
-                ps.setString(2, email.trim());
+                ps.setString(1, newPassword);
+                ps.setInt(2, parentId);
                 
                 int rowsUpdated = ps.executeUpdate();
                 if (rowsUpdated > 0) {
-                    LOGGER.info("Password updated for email: " + email + " (new password: " + newPassword + ")");
+                    LOGGER.info("Password updated for parent ID: " + parentId);
                     return true;
                 } else {
-                    LOGGER.warning("No parent found with email: " + email);
+                    LOGGER.warning("No parent found with ID: " + parentId);
                     return false;
                 }
             }
         } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "Failed to update password for email: " + email, ex);
+            LOGGER.log(Level.SEVERE, "Failed to update password for parent ID: " + parentId, ex);
             return false;
+        }
+    }
+
+    public boolean updateProfile(Parents parent) throws SQLException {
+        String sql = "UPDATE Parents SET full_name = ?, phone = ? WHERE parent_id = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, parent.getFullName());
+            ps.setString(2, parent.getPhone());
+            ps.setInt(3, parent.getParentId());
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    public Parents findParentById(int parentId) {
+        String sql = "SELECT * FROM Parents WHERE parent_id = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, parentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Parents parent = new Parents();
+                    parent.setParentId(rs.getInt("parent_id"));
+                    parent.setEmail(rs.getString("email"));
+                    parent.setFullName(rs.getString("full_name"));
+                    parent.setPhone(rs.getString("phone"));
+                    parent.setPassword(rs.getString("password")); // Needed for change password validation
+                    return parent;
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error finding parent by ID", ex);
+        }
+        return null;
+    }
+
+    public boolean saveVerificationCode(String email, String code, Timestamp expiryTime) throws SQLException {
+        String sql = "UPDATE Parents SET verification_code = ?, verification_code_expiry = ? WHERE email = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, code);
+            ps.setTimestamp(2, expiryTime);
+            ps.setString(3, email);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    public Parents findByVerificationCode(String code) {
+        String sql = "SELECT * FROM Parents WHERE verification_code = ? AND verification_code_expiry > GETDATE()";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, code);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // Map rs to Parents object
+                    Parents parent = new Parents();
+                    parent.setParentId(rs.getInt("parent_id"));
+                    parent.setEmail(rs.getString("email"));
+                    parent.setStatus(rs.getString("status"));
+                    // ... map other fields if needed
+                    return parent;
+                }
+            }
+        } catch (SQLException ex) {
+            LOGGER.log(Level.SEVERE, "Error finding by verification code", ex);
+        }
+        return null;
+    }
+
+    public boolean activateAccount(int parentId) throws SQLException {
+        String sql = "UPDATE Parents SET status = 'ACTIVE', is_verified = 1, verification_code = NULL, verification_code_expiry = NULL WHERE parent_id = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, parentId);
+            return ps.executeUpdate() > 0;
         }
     }
     

@@ -1,11 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome, Parent!</title>
+    <title>Chào mừng Phụ huynh!</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -66,8 +66,8 @@
 <body>
     <div class="profile-selection-container">
         <div class="profile-header">
-            <h1>Welcome, ${sessionScope.username}!</h1>
-            <p>Please select a profile to continue.</p>
+            <h1>Chào mừng, ${sessionScope.username}!</h1>
+            <p>Vui lòng chọn một hồ sơ để tiếp tục.</p>
         </div>
 
         <div class="child-profiles">
@@ -75,21 +75,21 @@
                 <c:when test="${not empty childrenList}">
                     <c:forEach var="child" items="${childrenList}">
                         <a href="${pageContext.request.contextPath}/kid/home?childId=${child.childId}" class="child-profile-card">
-                            <img src="https://i.pravatar.cc/120?u=${child.childId}" alt="${child.fullName}'s Avatar" class="avatar">
+                            <img src="https://i.pravatar.cc/120?u=${child.childId}" alt="Ảnh đại diện của ${child.fullName}" class="avatar">
                             <h3><c:out value="${child.fullName}"/></h3>
                         </a>
                     </c:forEach>
                 </c:when>
                 <c:otherwise>
-                    <p class="text-muted">No child profiles found. You can add one in account management.</p>
+                    <p class="text-muted">Không tìm thấy hồ sơ của bé nào. Bạn có thể thêm hồ sơ trong phần quản lý tài khoản.</p>
                 </c:otherwise>
             </c:choose>
         </div>
 
         <div class="parent-actions">
-            <a href="#" class="btn btn-outline-primary"><i class="bi bi-person-plus-fill"></i> Add Child</a>
-            <a href="#" class="btn btn-outline-primary"><i class="bi bi-person-circle"></i> Manage Account</a>
-            <a href="${pageContext.request.contextPath}/logout" class="btn btn-outline-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
+            <a href="${pageContext.request.contextPath}/user/home?action=add_child" class="btn btn-outline-primary"><i class="bi bi-person-plus-fill"></i> Thêm hồ sơ bé</a>
+            <a href="${pageContext.request.contextPath}/user/home?action=manage_account" class="btn btn-outline-primary"><i class="bi bi-person-circle"></i> Quản lý tài khoản</a>
+            <a href="${pageContext.request.contextPath}/logout" class="btn btn-outline-danger"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a>
         </div>
     </div>
 </body>

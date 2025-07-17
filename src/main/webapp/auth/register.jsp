@@ -1,11 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Kid Social</title>
+    <title>Đăng ký - Kid Social</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -297,8 +297,8 @@
         <div class="auth-card">
             <!-- Header -->
             <div class="auth-header">
-                <h1 class="auth-title">Create Account</h1>
-                <p class="auth-subtitle">Join Kid Social today</p>
+                <h1 class="auth-title">Tạo tài khoản mới</h1>
+                <p class="auth-subtitle">Tham gia cộng đồng Kid Social an toàn và vui nhộn!</p>
             </div>
 
             <!-- Success Message -->
@@ -320,13 +320,13 @@
             <!-- Registration Form -->
             <form action="${pageContext.request.contextPath}/register" method="post" novalidate id="registerForm">
                 <div class="form-group">
-                    <label for="fullName" class="form-label">Full Name</label>
+                    <label for="fullName" class="form-label">Họ và Tên</label>
                     <input 
                         type="text" 
                         id="fullName" 
                         name="fullName" 
                         class="form-control" 
-                        placeholder="Enter your full name"
+                        placeholder="Nhập họ và tên của bạn"
                         required 
                         autocomplete="name"
                         aria-describedby="fullName-error"
@@ -335,13 +335,13 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="email" class="form-label">Email Address</label>
+                    <label for="email" class="form-label">Địa chỉ Email</label>
                     <input 
                         type="email" 
                         id="email" 
                         name="email" 
                         class="form-control" 
-                        placeholder="Enter your email"
+                        placeholder="you@example.com"
                         required 
                         autocomplete="email"
                         aria-describedby="email-error"
@@ -350,13 +350,13 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="password" class="form-label">Password</label>
+                    <label for="password" class="form-label">Mật khẩu</label>
                     <input 
                         type="password" 
                         id="password" 
                         name="password" 
                         class="form-control" 
-                        placeholder="Create a password"
+                        placeholder="Tạo mật khẩu mạnh"
                         required 
                         autocomplete="new-password"
                         aria-describedby="password-error"
@@ -366,13 +366,13 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <label for="confirmPassword" class="form-label">Xác nhận Mật khẩu</label>
                     <input 
                         type="password" 
                         id="confirmPassword" 
                         name="confirmPassword" 
                         class="form-control" 
-                        placeholder="Confirm your password"
+                        placeholder="Nhập lại mật khẩu"
                         required 
                         autocomplete="new-password"
                         aria-describedby="confirmPassword-error"
@@ -381,13 +381,13 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="phone" class="form-label">Phone Number <span class="text-muted">(Optional)</span></label>
+                    <label for="phone" class="form-label">Số điện thoại <span class="text-muted">(Không bắt buộc)</span></label>
                     <input 
                         type="tel" 
                         id="phone" 
                         name="phone" 
                         class="form-control" 
-                        placeholder="Enter your phone number"
+                        placeholder="Nhập số điện thoại của bạn"
                         autocomplete="tel"
                         aria-describedby="phone-error"
                     >
@@ -395,14 +395,14 @@
                 </div>
 
                 <button type="submit" class="btn-primary" id="registerBtn">
-                    Create Account
+                    Tạo tài khoản
                 </button>
             </form>
 
             <!-- Login Link -->
             <div class="login-link">
-                Already have an account? 
-                <a href="${pageContext.request.contextPath}/login" class="auth-link">Sign in</a>
+                Đã có tài khoản? 
+                <a href="${pageContext.request.contextPath}/auth/login.jsp" class="auth-link">Đăng nhập ngay</a>
             </div>
         </div>
     </div>
@@ -429,10 +429,10 @@
             // Validate full name
             const fullName = form.fullName.value.trim();
             if (!fullName) {
-                showError('fullName', 'Full name is required');
+                showError('fullName', 'Họ và tên là bắt buộc');
                 isValid = false;
             } else if (fullName.length < 2) {
-                showError('fullName', 'Full name must be at least 2 characters');
+                showError('fullName', 'Họ và tên phải có ít nhất 2 ký tự');
                 isValid = false;
             } else {
                 showValid('fullName');
@@ -442,10 +442,10 @@
             const email = form.email.value.trim();
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!email) {
-                showError('email', 'Email is required');
+                showError('email', 'Địa chỉ email là bắt buộc');
                 isValid = false;
             } else if (!emailRegex.test(email)) {
-                showError('email', 'Please enter a valid email address');
+                showError('email', 'Vui lòng nhập địa chỉ email hợp lệ');
                 isValid = false;
             } else {
                 showValid('email');
@@ -454,10 +454,10 @@
             // Validate password
             const password = form.password.value;
             if (!password) {
-                showError('password', 'Password is required');
+                showError('password', 'Mật khẩu là bắt buộc');
                 isValid = false;
             } else if (password.length < 6) {
-                showError('password', 'Password must be at least 6 characters');
+                showError('password', 'Mật khẩu phải có ít nhất 6 ký tự');
                 isValid = false;
             } else {
                 showValid('password');
@@ -466,10 +466,10 @@
             // Validate confirm password
             const confirmPassword = form.confirmPassword.value;
             if (!confirmPassword) {
-                showError('confirmPassword', 'Please confirm your password');
+                showError('confirmPassword', 'Vui lòng xác nhận mật khẩu');
                 isValid = false;
             } else if (password !== confirmPassword) {
-                showError('confirmPassword', 'Passwords do not match');
+                showError('confirmPassword', 'Mật khẩu không khớp');
                 isValid = false;
             } else {
                 showValid('confirmPassword');
@@ -480,7 +480,7 @@
             if (phone) {
                 const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
                 if (!phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''))) {
-                    showError('phone', 'Please enter a valid phone number');
+                    showError('phone', 'Vui lòng nhập số điện thoại hợp lệ');
                     isValid = false;
                 } else {
                     showValid('phone');
@@ -491,7 +491,7 @@
                 // Show loading state
                 submitBtn.classList.add('btn-loading');
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Creating Account...';
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang tạo...';
                 
                 // Submit form
                 form.submit();
@@ -518,7 +518,7 @@
             if (confirmPassword && password !== confirmPassword) {
                 this.classList.add('is-invalid');
                 this.classList.remove('is-valid');
-                document.getElementById('confirmPassword-error').textContent = 'Passwords do not match';
+                document.getElementById('confirmPassword-error').textContent = 'Mật khẩu không khớp';
             } else if (confirmPassword && password === confirmPassword) {
                 this.classList.add('is-valid');
                 this.classList.remove('is-invalid');

@@ -86,7 +86,7 @@ public class LoginServlet extends HttpServlet {
             LOGGER.info("User found in database: " + p.getEmail());
             
             // Compare plaintext passwords
-            if (passwordInput.equals(p.getPasswordHash())) {
+            if (passwordInput.equals(p.getPassword())) {
                 LOGGER.info("Login successful for " + email);
                 
                 // Validate role
@@ -136,7 +136,7 @@ public class LoginServlet extends HttpServlet {
                 
             } else {
                 LOGGER.warning("Login failed: mismatched password for " + email
-                    + " [stored=" + p.getPasswordHash() + "], [input=" + passwordInput + "]");
+                    + " [stored=" + p.getPassword() + "], [input=" + passwordInput + "]");
                 req.setAttribute("error", "Invalid email or password");
                 req.getRequestDispatcher("/auth/login.jsp").forward(req, resp);
             }

@@ -10,7 +10,7 @@ public class DBConnection {
     private static final Logger LOGGER = Logger.getLogger(DBConnection.class.getName());
     
     // Database configuration
-    private static final String DB_URL = "jdbc:sqlserver://localhost:1433;databaseName=KidSocialDBb;encrypt=false;trustServerCertificate=true";
+    private static final String DB_URL = "jdbc:sqlserver://localhost:1433;databaseName=KidSocialDB;encrypt=false;trustServerCertificate=true";
     private static final String USER_DB = "sa";
     private static final String PASS_DB = "sa";
     

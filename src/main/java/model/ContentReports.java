@@ -12,30 +12,15 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.Date;
 
-/**
- *
- * @author Admin
- */
 @Entity
 @Table(name = "ContentReports")
-@NamedQueries({
-    @NamedQuery(name = "ContentReports.findAll", query = "SELECT c FROM ContentReports c"),
-    @NamedQuery(name = "ContentReports.findByReportId", query = "SELECT c FROM ContentReports c WHERE c.reportId = :reportId"),
-    @NamedQuery(name = "ContentReports.findByReason", query = "SELECT c FROM ContentReports c WHERE c.reason = :reason"),
-    @NamedQuery(name = "ContentReports.findByStatus", query = "SELECT c FROM ContentReports c WHERE c.status = :status"),
-    @NamedQuery(name = "ContentReports.findByReviewNotes", query = "SELECT c FROM ContentReports c WHERE c.reviewNotes = :reviewNotes"),
-    @NamedQuery(name = "ContentReports.findByCreatedAt", query = "SELECT c FROM ContentReports c WHERE c.createdAt = :createdAt"),
-    @NamedQuery(name = "ContentReports.findByResolvedAt", query = "SELECT c FROM ContentReports c WHERE c.resolvedAt = :resolvedAt")})
 public class ContentReports implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -44,48 +29,31 @@ public class ContentReports implements Serializable {
     @Basic(optional = false)
     @Column(name = "report_id")
     private Integer reportId;
-    @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 2147483647)
+
+    @Size(max = 2147483647)
     @Column(name = "reason")
     private String reason;
-    @Size(max = 20)
+
+    @Size(max = 50)
     @Column(name = "status")
     private String status;
-    @Size(max = 2147483647)
-    @Column(name = "review_notes")
-    private String reviewNotes;
+
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
-    @Column(name = "resolved_at")
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date resolvedAt;
-    @JoinColumn(name = "drawing_id", referencedColumnName = "drawing_id")
-    @ManyToOne
-    private Drawings drawingId;
+
+    @JoinColumn(name = "post_id", referencedColumnName = "post_id")
+    @ManyToOne(optional = false)
+    private Posts postId;
+
     @JoinColumn(name = "reporter_id", referencedColumnName = "parent_id")
     @ManyToOne(optional = false)
     private Parents reporterId;
-    @JoinColumn(name = "reviewed_by", referencedColumnName = "parent_id")
-    @ManyToOne
-    private Parents reviewedBy;
-    @JoinColumn(name = "post_id", referencedColumnName = "post_id")
-    @ManyToOne
-    private Posts postId;
 
     public ContentReports() {
     }
 
-    public ContentReports(Integer reportId) {
-        this.reportId = reportId;
-    }
-
-    public ContentReports(Integer reportId, String reason) {
-        this.reportId = reportId;
-        this.reason = reason;
-    }
-
+    // Getters and Setters
     public Integer getReportId() {
         return reportId;
     }
@@ -110,52 +78,12 @@ public class ContentReports implements Serializable {
         this.status = status;
     }
 
-    public String getReviewNotes() {
-        return reviewNotes;
-    }
-
-    public void setReviewNotes(String reviewNotes) {
-        this.reviewNotes = reviewNotes;
-    }
-
     public Date getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
-    }
-
-    public Date getResolvedAt() {
-        return resolvedAt;
-    }
-
-    public void setResolvedAt(Date resolvedAt) {
-        this.resolvedAt = resolvedAt;
-    }
-
-    public Drawings getDrawingId() {
-        return drawingId;
-    }
-
-    public void setDrawingId(Drawings drawingId) {
-        this.drawingId = drawingId;
-    }
-
-    public Parents getReporterId() {
-        return reporterId;
-    }
-
-    public void setReporterId(Parents reporterId) {
-        this.reporterId = reporterId;
-    }
-
-    public Parents getReviewedBy() {
-        return reviewedBy;
-    }
-
-    public void setReviewedBy(Parents reviewedBy) {
-        this.reviewedBy = reviewedBy;
     }
 
     public Posts getPostId() {
@@ -166,29 +94,11 @@ public class ContentReports implements Serializable {
         this.postId = postId;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 0;
-        hash += (reportId != null ? reportId.hashCode() : 0);
-        return hash;
+    public Parents getReporterId() {
+        return reporterId;
     }
 
-    @Override
-    public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof ContentReports)) {
-            return false;
-        }
-        ContentReports other = (ContentReports) object;
-        if ((this.reportId == null && other.reportId != null) || (this.reportId != null && !this.reportId.equals(other.reportId))) {
-            return false;
-        }
-        return true;
+    public void setReporterId(Parents reporterId) {
+        this.reporterId = reporterId;
     }
-
-    @Override
-    public String toString() {
-        return "model.ContentReports[ reportId=" + reportId + " ]";
-    }
-    
 }

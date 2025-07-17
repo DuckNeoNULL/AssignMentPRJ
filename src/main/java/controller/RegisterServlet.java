@@ -62,12 +62,13 @@ public class RegisterServlet extends HttpServlet {
             // Create new parent object
             Parents parent = new Parents();
             parent.setEmail(email.trim());
-            parent.setPasswordHash(password); // Store plaintext password directly
+            parent.setPassword(password); // Changed from setPasswordHash
             parent.setFullName(fullName.trim());
             parent.setPhone(phone != null ? phone.trim() : null);
             parent.setRole("USER"); // Default role for new registrations
+            parent.setStatus("ACTIVE"); // Set default status
             
-            LOGGER.info("Creating new user with email: " + email.trim() + ", password: " + password + ", role: USER");
+            LOGGER.info("Creating new user with email: " + email.trim() + ", role: USER");
             
             boolean created = parentDao.create(parent);
             if (created) {

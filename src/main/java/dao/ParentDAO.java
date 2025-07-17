@@ -4,6 +4,8 @@ import model.Parents;
 import java.sql.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ParentDAO {
     private static final Logger LOGGER = Logger.getLogger(ParentDAO.class.getName());
@@ -25,8 +27,8 @@ public class ParentDAO {
         }
         
         String sql = 
-            "SELECT parent_id, email, password_hash, full_name, phone, verification_code, "
-            + "is_verified, created_at, last_login, reset_token, reset_token_expiry "
+            "SELECT parent_id, email, password, full_name, phone, verification_code, "
+            + "is_verified, created_at, last_login, reset_token, reset_token_expiry, role, status "
             + "FROM Parents WHERE email = ?";
         
         try (Connection con = DBConnection.getConnection()) {
@@ -49,13 +51,13 @@ public class ParentDAO {
                         return null;
                     }
                     
-                    String stored = rs.getString("password_hash");
-                    LOGGER.info("Stored password_hash=[" + stored + "]");
+                    String stored = rs.getString("password");
+                    LOGGER.info("Stored password=[" + stored + "]");
                     
                     Parents parent = new Parents();
                     parent.setParentId(rs.getInt("parent_id"));
                     parent.setEmail(rs.getString("email"));
-                    parent.setPasswordHash(stored);
+                    parent.setPassword(stored);
                     parent.setFullName(rs.getString("full_name"));
                     parent.setPhone(rs.getString("phone"));
                     parent.setVerificationCode(rs.getString("verification_code"));
@@ -64,6 +66,8 @@ public class ParentDAO {
                     parent.setLastLogin(rs.getTimestamp("last_login"));
                     parent.setResetToken(rs.getString("reset_token"));
                     parent.setResetTokenExpiry(rs.getTimestamp("reset_token_expiry"));
+                    parent.setRole(rs.getString("role"));
+                    parent.setStatus(rs.getString("status"));
                     
                     // Set default role if not specified
                     String role = "USER";
@@ -131,7 +135,7 @@ public class ParentDAO {
             LOGGER.info("Invalid or null role provided, defaulting to USER for email: " + parent.getEmail());
         }
         
-        String sql = "INSERT INTO Parents (email, password_hash, full_name, phone, role, created_at) VALUES (?, ?, ?, ?, ?, GETDATE())";
+        String sql = "INSERT INTO Parents (email, password, full_name, phone, role, created_at, status) VALUES (?, ?, ?, ?, ?, GETDATE(), ?)";
         
         try (Connection con = DBConnection.getConnection()) {
             if (con == null) {
@@ -141,10 +145,11 @@ public class ParentDAO {
             
             try (PreparedStatement ps = con.prepareStatement(sql)) {
                 ps.setString(1, parent.getEmail());
-                ps.setString(2, parent.getPasswordHash());
+                ps.setString(2, parent.getPassword());
                 ps.setString(3, parent.getFullName());
                 ps.setString(4, parent.getPhone());
-                ps.setString(5, role);
+                ps.setString(5, parent.getRole());
+                ps.setString(6, parent.getStatus());
                 
                 int result = ps.executeUpdate();
                 if (result > 0) {
@@ -197,7 +202,7 @@ public class ParentDAO {
             return false;
         }
         
-        String sql = "UPDATE Parents SET password_hash = ? WHERE email = ?";
+        String sql = "UPDATE Parents SET password = ?, reset_token = NULL, reset_token_expiry = NULL WHERE email = ?";
         
         try (Connection con = DBConnection.getConnection()) {
             if (con == null) {
@@ -225,74 +230,223 @@ public class ParentDAO {
     }
     
     public boolean createAdminAccount() {
-        Parents admin = new Parents();
-        admin.setEmail("admin@gmail.com");
-        admin.setPasswordHash("123");
-        admin.setFullName("Administrator");
-        admin.setRole("ADMIN");
-        
+        // This method should be reviewed. Storing plain text password is not secure.
         if (!emailExists("admin@gmail.com")) {
+            Parents admin = new Parents();
+            admin.setEmail("admin@gmail.com");
+            admin.setPassword("admin123"); // Plain text password
+            admin.setFullName("Administrator");
+            admin.setRole("ADMIN");
+            admin.setStatus("ACTIVE");
+            admin.setIsVerified(true);
             return create(admin);
         }
         return true; // Already exists
     }
     
+    public List<Parents> getAllParents() {
+        List<Parents> parentsList = new ArrayList<>();
+        String sql = "SELECT parent_id, email, full_name, phone, is_verified, created_at, last_login, role, status FROM Parents";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            while (rs.next()) {
+                Parents parent = new Parents();
+                parent.setParentId(rs.getInt("parent_id"));
+                parent.setEmail(rs.getString("email"));
+                parent.setFullName(rs.getString("full_name"));
+                parent.setPhone(rs.getString("phone"));
+                parent.setIsVerified(rs.getBoolean("is_verified"));
+                parent.setCreatedAt(rs.getTimestamp("created_at"));
+                parent.setLastLogin(rs.getTimestamp("last_login"));
+                parent.setRole(rs.getString("role"));
+                parent.setStatus(rs.getString("status"));
+                parentsList.add(parent);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error getting all parents", e);
+        }
+        return parentsList;
+    }
+    
     public int getTotalUsersCount() {
         String sql = "SELECT COUNT(*) FROM Parents";
-        
-        try (Connection con = DBConnection.getConnection()) {
-            if (con == null) {
-                LOGGER.severe("Cannot get total users count: Database connection failed");
-                return 0;
-            }
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
             
-            try (PreparedStatement ps = con.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
-                
-                if (rs.next()) {
-                    int count = rs.getInt(1);
-                    LOGGER.info("Total users count: " + count);
-                    return count;
-                }
+            if (rs.next()) {
+                return rs.getInt(1);
             }
-        } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "Failed to get total users count", ex);
+        } catch (SQLException e) {
+            LOGGER.severe("Error getting total users count: " + e.getMessage());
         }
-        
         return 0;
     }
     
     public int getNewUsersCountThisMonth() {
-        String sql = "SELECT COUNT(*) FROM Parents WHERE created_at >= DATEADD(MONTH, -1, GETDATE())";
-        
-        try (Connection con = DBConnection.getConnection()) {
-            if (con == null) {
-                LOGGER.severe("Cannot get new users count: Database connection failed");
-                return 0;
-            }
+        String sql = "SELECT COUNT(*) FROM Parents WHERE MONTH(created_at) = MONTH(GETDATE()) AND YEAR(created_at) = YEAR(GETDATE())";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
             
-            try (PreparedStatement ps = con.prepareStatement(sql);
-                 ResultSet rs = ps.executeQuery()) {
-                
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            LOGGER.severe("Error getting new users count this month: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    public int getNewUsersCountLastMonth() {
+        String sql = "SELECT COUNT(*) FROM Parents WHERE MONTH(created_at) = MONTH(DATEADD(month, -1, GETDATE())) AND YEAR(created_at) = YEAR(DATEADD(month, -1, GETDATE()))";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            LOGGER.severe("Error getting new users count last month: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    public int getActiveUsersCount() {
+        String sql = "SELECT COUNT(*) FROM Parents WHERE status = 'active'";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            LOGGER.severe("Error getting active users count: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    public int getNewUsersCountToday() {
+        String sql = "SELECT COUNT(*) FROM Parents WHERE CAST(created_at AS DATE) = CAST(GETDATE() AS DATE)";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            LOGGER.severe("Error getting new users count today: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    public int getNewUsersCountThisWeek() {
+        String sql = "SELECT COUNT(*) FROM Parents WHERE created_at >= DATEADD(week, -1, GETDATE())";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            LOGGER.severe("Error getting new users count this week: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    public int getTotalChildrenCount() {
+        String sql = "SELECT COUNT(*) FROM Children";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            LOGGER.severe("Error getting total children count: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    public int getActiveUsersCountToday() {
+        String sql = "SELECT COUNT(DISTINCT parent_id) FROM ActivityLogs WHERE CAST(timestamp AS DATE) = CAST(GETDATE() AS DATE)";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            LOGGER.severe("Error getting active users count today: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    public int getVerifiedUsersCount() {
+        String sql = "SELECT COUNT(*) FROM Parents WHERE email_verified = 1";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            LOGGER.severe("Error getting verified users count: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    public int getSuspendedUsersCount() {
+        String sql = "SELECT COUNT(*) FROM Parents WHERE status = 'suspended'";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            LOGGER.severe("Error getting suspended users count: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    public boolean isDatabaseConnected() {
+        try (Connection con = DBConnection.getConnection()) {
+            return con != null && !con.isClosed();
+        } catch (SQLException e) {
+            LOGGER.severe("Database connection check failed: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public int getNewUsersCountByDay(int daysAgo) {
+        String sql = "SELECT COUNT(*) FROM Parents WHERE CAST(created_at AS DATE) = CAST(DATEADD(day, ?, GETDATE()) AS DATE)";
+        
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setInt(1, -daysAgo);
+            
+            try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    int count = rs.getInt(1);
-                    LOGGER.info("New users this month: " + count);
-                    return count;
+                    return rs.getInt(1);
                 }
             }
-        } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "Failed to get new users count this month", ex);
+        } catch (SQLException e) {
+            LOGGER.severe("Error getting new users count by day: " + e.getMessage());
         }
         
         return 0;
-    }
-    
-    public boolean checkConnection() {
-        try (Connection con = DBConnection.getConnection()) {
-            return con != null && !con.isClosed();
-        } catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, "Database connection check failed", ex);
-            return false;
-        }
     }
 }

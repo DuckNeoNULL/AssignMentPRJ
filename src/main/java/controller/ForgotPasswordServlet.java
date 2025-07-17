@@ -63,7 +63,7 @@ public class ForgotPasswordServlet extends HttpServlet {
                     // For development: log the reset code (in production, send via email)
                     System.out.println("=== PASSWORD RESET ===");
                     System.out.println("Email: " + email);
-                    System.out.println("Current Password (plaintext): " + parent.getPasswordHash());
+                    System.out.println("Current Password (plaintext): " + parent.getPassword());
                     System.out.println("Reset Code: " + verificationCode);
                     System.out.println("=====================");
                     

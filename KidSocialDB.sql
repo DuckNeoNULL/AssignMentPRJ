@@ -1,168 +1,147 @@
-﻿-- Tạo CSDL
-CREATE DATABASE KidSocialDBb;
-GO
-USE KidSocialDBb;
+﻿USE master;
 GO
 
--- 1. Bảng Parents
-CREATE TABLE Parents (
-    parent_id INT PRIMARY KEY IDENTITY(1,1),
-    email NVARCHAR(100) UNIQUE NOT NULL,
-    password_hash NVARCHAR(100) NOT NULL,
-    full_name NVARCHAR(100) NOT NULL,
-    phone NVARCHAR(20),
-    verification_code NVARCHAR(10),
-    is_verified BIT DEFAULT 0,
-    created_at DATETIME DEFAULT GETDATE(),
-    last_login DATETIME,
-    reset_token NVARCHAR(100),
-    reset_token_expiry DATETIME
+-- 1) Drop the database if it exists to ensure a clean setup
+IF DB_ID('KidSocialDB') IS NOT NULL
+BEGIN
+    ALTER DATABASE [KidSocialDB] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP DATABASE [KidSocialDB];
+END;
+GO
+
+-- 2) Create a new database
+CREATE DATABASE [KidSocialDB];
+GO
+USE [KidSocialDB];
+GO
+
+-- 3) Create Tables in the correct order of dependency
+
+-- Parents Table
+CREATE TABLE dbo.Parents (
+    parent_id            INT           IDENTITY(1,1) PRIMARY KEY,
+    email                NVARCHAR(100) NOT NULL UNIQUE,
+    password             NVARCHAR(100) NOT NULL, -- Changed from password_hash
+    full_name            NVARCHAR(100) NOT NULL,
+    phone                NVARCHAR(20)  NULL,
+    verification_code    NVARCHAR(10)  NULL,
+    is_verified          BIT           NOT NULL DEFAULT 0,
+    verification_expiry  DATETIME2     NULL,
+    role                 NVARCHAR(20)  NOT NULL DEFAULT 'USER',
+    status               NVARCHAR(20)  NOT NULL DEFAULT 'ACTIVE', -- Added status
+    created_at           DATETIME2     NOT NULL DEFAULT GETDATE(),
+    last_login           DATETIME2     NULL,
+    reset_token          NVARCHAR(255) NULL,
+    reset_token_expiry   DATETIME2     NULL,
+    CONSTRAINT CK_Parents_Role   CHECK (role IN ('USER','ADMIN')),
+    CONSTRAINT CK_Parents_Status CHECK (status IN ('ACTIVE', 'SUSPENDED', 'DELETED')),
+    CONSTRAINT CK_Parents_Email  CHECK (email LIKE '%@%.%')
 );
+GO
 
--- 2. Bảng Children
-CREATE TABLE Children (
-    child_id INT PRIMARY KEY IDENTITY(1,1),
-    parent_id INT NOT NULL,
-    name NVARCHAR(100) NOT NULL,
-    age INT NOT NULL CHECK (age BETWEEN 3 AND 12),
-    avatar_url NVARCHAR(255),
-    created_at DATETIME DEFAULT GETDATE(),
-    CONSTRAINT FK_Children_Parents FOREIGN KEY (parent_id) REFERENCES Parents(parent_id)
+-- Children Table
+CREATE TABLE dbo.Children (
+    child_id      INT           IDENTITY(1,1) PRIMARY KEY,
+    parent_id     INT           NOT NULL REFERENCES dbo.Parents(parent_id) ON DELETE CASCADE,
+    full_name     NVARCHAR(100) NOT NULL,
+    date_of_birth DATE          NOT NULL,
+    gender        NVARCHAR(10)  NOT NULL
 );
+GO
 
--- 3. Bảng Posts
-CREATE TABLE Posts (
-    post_id INT PRIMARY KEY IDENTITY(1,1),
-    child_id INT NOT NULL,
-    content NVARCHAR(MAX),
-    image_url NVARCHAR(255),
-    is_approved BIT DEFAULT 0,
-    approved_by INT NULL,
-    approval_date DATETIME,
-    created_at DATETIME DEFAULT GETDATE(),
-    updated_at DATETIME,
-    moderation_score FLOAT,
-    moderation_flag BIT DEFAULT 0,
-    CONSTRAINT FK_Posts_Children FOREIGN KEY (child_id) REFERENCES Children(child_id),
-    CONSTRAINT FK_Posts_ApprovedBy FOREIGN KEY (approved_by) REFERENCES Parents(parent_id)
+-- Posts Table
+CREATE TABLE dbo.Posts (
+    post_id          INT           IDENTITY(1,1) PRIMARY KEY,
+    child_id         INT           NOT NULL REFERENCES dbo.Children(child_id),
+    title            NVARCHAR(255) NULL, -- Added title
+    content          NVARCHAR(MAX) NOT NULL,
+    image_url        NVARCHAR(255) NULL,
+    status           NVARCHAR(50)  NOT NULL DEFAULT 'PENDING', -- Added status
+    is_approved      BIT           DEFAULT 0,
+    approved_by      INT           NULL REFERENCES dbo.Parents(parent_id),
+    approval_date    DATETIME2     NULL,
+    moderation_score FLOAT         NULL,
+    moderation_flag  BIT           DEFAULT 0,
+    created_at       DATETIME2     NOT NULL DEFAULT GETDATE(),
+    updated_at       DATETIME2     NULL,
+    CONSTRAINT CK_Posts_Status CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED'))
 );
+GO
 
--- 4. Bảng Courses
-CREATE TABLE Courses (
-    course_id INT PRIMARY KEY IDENTITY(1,1),
-    title NVARCHAR(255) NOT NULL,
-    description NVARCHAR(MAX),
-    content_url NVARCHAR(255),
-    age_min INT NOT NULL DEFAULT 3,
-    age_max INT NOT NULL DEFAULT 12,
-    thumbnail_url NVARCHAR(255),
-    created_by INT,
-    created_at DATETIME DEFAULT GETDATE(),
-    is_active BIT DEFAULT 1,
-    CONSTRAINT FK_Courses_Parents FOREIGN KEY (created_by) REFERENCES Parents(parent_id),
-    CONSTRAINT CHK_Age_Range CHECK (age_min <= age_max)
+-- ContentReports Table
+CREATE TABLE dbo.ContentReports (
+    report_id   INT           IDENTITY(1,1) PRIMARY KEY,
+    post_id     INT           NOT NULL REFERENCES dbo.Posts(post_id) ON DELETE CASCADE,
+    reporter_id INT           NOT NULL REFERENCES dbo.Parents(parent_id),
+    reason      NVARCHAR(MAX) NOT NULL,
+    status      NVARCHAR(50)  NOT NULL DEFAULT 'PENDING',
+    created_at  DATETIME2     NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT CK_ContentReports_Status CHECK (status IN ('PENDING', 'REVIEWED', 'RESOLVED'))
 );
+GO
 
--- 5. Bảng Drawings
-CREATE TABLE Drawings (
-    drawing_id INT PRIMARY KEY IDENTITY(1,1),
-    child_id INT NOT NULL,
-    image_url NVARCHAR(255) NOT NULL,
-    title NVARCHAR(100),
-    created_at DATETIME DEFAULT GETDATE(),
-    is_approved BIT DEFAULT 1,
-    approved_by INT NULL,
-    CONSTRAINT FK_Drawings_Child FOREIGN KEY (child_id) REFERENCES Children(child_id),
-    CONSTRAINT FK_Drawings_Approved FOREIGN KEY (approved_by) REFERENCES Parents(parent_id)
+-- ActivityLog Table
+CREATE TABLE dbo.activity_log (
+    id             INT           IDENTITY(1,1) PRIMARY KEY,
+    activity_type  NVARCHAR(50)  NOT NULL,
+    description    NVARCHAR(MAX) NOT NULL,
+    admin_email    NVARCHAR(100) NULL,
+    admin_name     NVARCHAR(100) NULL,
+    ip_address     NVARCHAR(45)  NULL,
+    metadata       NVARCHAR(MAX) NULL,
+    timestamp      DATETIME2     NOT NULL DEFAULT GETDATE()
 );
+GO
 
--- 6. Bảng ContentReports
-CREATE TABLE ContentReports (
-    report_id INT PRIMARY KEY IDENTITY(1,1),
-    post_id INT NULL,
-    drawing_id INT NULL,
-    reporter_id INT NOT NULL,
-    reason NVARCHAR(MAX) NOT NULL,
-    status NVARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'resolved')),
-    reviewed_by INT NULL,
-    review_notes NVARCHAR(MAX),
-    created_at DATETIME DEFAULT GETDATE(),
-    resolved_at DATETIME,
-    CONSTRAINT FK_Report_Post FOREIGN KEY (post_id) REFERENCES Posts(post_id),
-    CONSTRAINT FK_Report_Drawing FOREIGN KEY (drawing_id) REFERENCES Drawings(drawing_id),
-    CONSTRAINT FK_Report_Reporter FOREIGN KEY (reporter_id) REFERENCES Parents(parent_id),
-    CONSTRAINT FK_Report_Reviewer FOREIGN KEY (reviewed_by) REFERENCES Parents(parent_id),
-    CONSTRAINT CHK_Report_HasContent CHECK (post_id IS NOT NULL OR drawing_id IS NOT NULL)
-);
+-- Create Indexes for performance
+CREATE INDEX IDX_ActivityLog_Timestamp ON dbo.activity_log(timestamp DESC);
+CREATE INDEX IDX_Posts_Status ON dbo.Posts(status);
+GO
 
--- 7. Bảng SensitiveKeywords
-CREATE TABLE SensitiveKeywords (
-    keyword_id INT PRIMARY KEY IDENTITY(1,1),
-    keyword NVARCHAR(100) NOT NULL UNIQUE,
-    severity INT DEFAULT 1 CHECK (severity BETWEEN 1 AND 3),
-    added_by INT,
-    added_at DATETIME DEFAULT GETDATE(),
-    is_active BIT DEFAULT 1,
-    CONSTRAINT FK_Keywords_Parent FOREIGN KEY (added_by) REFERENCES Parents(parent_id)
-);
 
--- 8. Bảng RecommendedBooks
-CREATE TABLE RecommendedBooks (
-    book_id INT PRIMARY KEY IDENTITY(1,1),
-    title NVARCHAR(255) NOT NULL,
-    author NVARCHAR(100),
-    age_min INT DEFAULT 3,
-    age_max INT DEFAULT 12,
-    description NVARCHAR(MAX),
-    cover_url NVARCHAR(255),
-    amazon_url NVARCHAR(255),
-    added_at DATETIME DEFAULT GETDATE(),
-    is_active BIT DEFAULT 1
-);
+-- 4) Seed Data
 
--- 9. Bảng BookSearches
-CREATE TABLE BookSearches (
-    search_id INT PRIMARY KEY IDENTITY(1,1),
-    child_id INT,
-    search_term NVARCHAR(255) NOT NULL,
-    search_date DATETIME DEFAULT GETDATE(),
-    results_count INT,
-    CONSTRAINT FK_Search_Child FOREIGN KEY (child_id) REFERENCES Children(child_id)
-);
-
--- 10. Bảng Activities
-CREATE TABLE Activities (
-    activity_id INT PRIMARY KEY IDENTITY(1,1),
-    child_id INT NOT NULL,
-    activity_type NVARCHAR(50) NOT NULL CHECK (activity_type IN ('post', 'drawing', 'course_view', 'book_search')),
-    target_id INT,
-    activity_date DATETIME DEFAULT GETDATE(),
-    details NVARCHAR(MAX),
-    CONSTRAINT FK_Activity_Child FOREIGN KEY (child_id) REFERENCES Children(child_id)
-);
-
--- 🔍 Tối ưu hiệu năng bằng chỉ mục
-CREATE INDEX IDX_Posts_Child ON Posts(child_id);
-CREATE INDEX IDX_Posts_Approval ON Posts(is_approved);
-CREATE INDEX IDX_Children_Parent ON Children(parent_id);
-CREATE INDEX IDX_ContentReports_Status ON ContentReports(status);
-CREATE INDEX IDX_BookSearches_Child ON BookSearches(child_id);
-
--- Parents mẫu
-INSERT INTO Parents (email, password_hash, full_name, phone, is_verified)
+-- Seed sample parents
+INSERT INTO dbo.Parents (email, password, full_name, phone, is_verified, role, status)
 VALUES
-('admin@gmail.com', '123', N'Nguyễn Văn An', '0912345678', 1),
-('phu1@gmail.com', 'abc123', N'Trần Thị Bình', '0987654321', 1);
+('admin@gmail.com', 'admin123', 'Admin User', '0901234567', 1, 'ADMIN', 'ACTIVE'),
+('user1@gmail.com', 'user123', 'John Doe', '0902345678', 1, 'USER', 'ACTIVE'),
+('user2@gmail.com', 'user123', 'Jane Smith', '0903456789', 1, 'USER', 'ACTIVE'),
+('user3@gmail.com', 'user123', 'Mike Johnson', '0904567890', 0, 'USER', 'SUSPENDED');
+GO
 
--- Children mẫu
-INSERT INTO Children (parent_id, name, age, avatar_url)
+-- Seed sample children
+INSERT INTO dbo.Children(parent_id, full_name, date_of_birth, gender)
 VALUES
-(1, N'Bé A', 7, 'https://example.com/avatars/a.png'),
-(2, N'Bé B', 10, 'https://example.com/avatars/b.png');
+((SELECT parent_id FROM dbo.Parents WHERE email='user1@gmail.com'), 'Emma Doe', '2018-06-01', 'Female'),
+((SELECT parent_id FROM dbo.Parents WHERE email='user1@gmail.com'), 'Liam Doe', '2015-09-15', 'Male'),
+((SELECT parent_id FROM dbo.Parents WHERE email='user2@gmail.com'), 'Sophia Smith', '2019-02-20', 'Female'),
+((SELECT parent_id FROM dbo.Parents WHERE email='user3@gmail.com'), 'Noah Johnson', '2016-11-10', 'Male');
+GO
 
--- Posts mẫu
-INSERT INTO Posts (child_id, content, image_url, is_approved)
+-- Seed sample posts
+INSERT INTO dbo.Posts(child_id, title, content, status)
 VALUES
-(1, N'Con thích vẽ tranh về thiên nhiên!', 'https://example.com/images/forest.png', 1);
+((SELECT child_id FROM dbo.Children WHERE full_name='Emma Doe'), 'My First Drawing', 'I drew a rainbow today!', 'APPROVED'),
+((SELECT child_id FROM dbo.Children WHERE full_name='Emma Doe'), 'Fun at the Park', 'We went to the park and played!', 'PENDING'),
+((SELECT child_id FROM dbo.Children WHERE full_name='Liam Doe'), 'Science Project', 'I made a volcano that erupts!', 'PENDING'),
+((SELECT child_id FROM dbo.Children WHERE full_name='Sophia Smith'), 'My Cute Cat', 'My cat Whiskers is very cute.', 'REJECTED');
+GO
 
+-- Seed sample reports
+INSERT INTO dbo.ContentReports(post_id, reporter_id, reason, status)
+VALUES
+((SELECT post_id FROM dbo.Posts WHERE title='Fun at the Park'), (SELECT parent_id FROM dbo.Parents WHERE email='user2@gmail.com'), 'This seems a bit vague.', 'PENDING'),
+((SELECT post_id FROM dbo.Posts WHERE title='Science Project'), (SELECT parent_id FROM dbo.Parents WHERE email='user1@gmail.com'), 'Could be unsafe for kids to replicate.', 'PENDING');
+GO
 
+-- Seed sample activity logs
+INSERT INTO dbo.activity_log (activity_type, description, admin_email, admin_name)
+VALUES 
+('USER_REGISTRATION', 'New user registered: user2@gmail.com', 'SYSTEM', 'System'),
+('POST_APPROVED', 'Post "My First Drawing" was approved', 'admin@gmail.com', 'Admin User'),
+('CONTENT_REPORTED', 'Post "Fun at the Park" was reported', 'user2@gmail.com', 'Jane Smith');
+GO
+
+PRINT 'Database KidSocialDB created and seeded successfully.';
+GO

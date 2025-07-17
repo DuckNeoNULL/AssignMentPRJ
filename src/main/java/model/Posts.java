@@ -48,6 +48,9 @@ public class Posts implements Serializable {
     @Basic(optional = false)
     @Column(name = "post_id")
     private Integer postId;
+    @Size(max = 255)
+    @Column(name = "title")
+    private String title;
     @Size(max = 2147483647)
     @Column(name = "content")
     private String content;
@@ -70,11 +73,14 @@ public class Posts implements Serializable {
     private Double moderationScore;
     @Column(name = "moderation_flag")
     private Boolean moderationFlag;
+    @Size(max = 50)
+    @Column(name = "status")
+    private String status;
     @OneToMany(mappedBy = "postId")
     private List<ContentReports> contentReportsList;
     @JoinColumn(name = "child_id", referencedColumnName = "child_id")
     @ManyToOne(optional = false)
-    private Children childId;
+    private Children child;
     @JoinColumn(name = "approved_by", referencedColumnName = "parent_id")
     @ManyToOne
     private Parents approvedBy;
@@ -92,6 +98,14 @@ public class Posts implements Serializable {
 
     public void setPostId(Integer postId) {
         this.postId = postId;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public String getContent() {
@@ -158,6 +172,14 @@ public class Posts implements Serializable {
         this.moderationFlag = moderationFlag;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     public List<ContentReports> getContentReportsList() {
         return contentReportsList;
     }
@@ -166,12 +188,12 @@ public class Posts implements Serializable {
         this.contentReportsList = contentReportsList;
     }
 
-    public Children getChildId() {
-        return childId;
+    public Children getChild() {
+        return child;
     }
 
-    public void setChildId(Children childId) {
-        this.childId = childId;
+    public void setChild(Children child) {
+        this.child = child;
     }
 
     public Parents getApprovedBy() {

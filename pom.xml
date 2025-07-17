@@ -23,7 +23,6 @@
         <hibernate.version>6.4.4.Final</hibernate.version>
 
         <!-- Other -->
-        <jbcrypt.version>0.4</jbcrypt.version>
         <jackson.version>2.17.0</jackson.version>
         <jstl.version>3.0.1</jstl.version>
     </properties>
@@ -61,13 +60,6 @@
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>${hibernate.version}</version>
-        </dependency>
-
-        <!-- Password Hashing -->
-        <dependency>
-            <groupId>org.mindrot</groupId>
-            <artifactId>jbcrypt</artifactId>
-            <version>${jbcrypt.version}</version>
         </dependency>
 
         <!-- JSON Processing -->

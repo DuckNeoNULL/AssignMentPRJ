@@ -613,107 +613,63 @@
 
             <!-- Statistics Cards -->
             <div class="stats-grid">
-                <div class="stat-card" onclick="location.href='${pageContext.request.contextPath}/admin/users'">
-                    <i class="bi bi-info-circle stat-tooltip" data-bs-toggle="tooltip" title="Total registered users in the system"></i>
+                <div class="stat-card">
                     <div class="stat-header">
-                        <div>
-                            <div class="stat-value">
-                                <c:choose>
-                                    <c:when test="${not empty stats.totalUsers}">
-                                        <fmt:formatNumber value="${stats.totalUsers}" type="number"/>
-                                    </c:when>
-                                    <c:otherwise>0</c:otherwise>
-                                </c:choose>
-                            </div>
-                            <div class="stat-label">Total Users</div>
-                            <div class="stat-change ${stats.userGrowthRate >= 0 ? 'positive' : 'negative'}">
-                                <i class="bi bi-arrow-${stats.userGrowthRate >= 0 ? 'up' : 'down'}"></i>
-                                <fmt:formatNumber value="${stats.userGrowthRate}" type="number" maxFractionDigits="1"/>% from last month
-                            </div>
+                        <h3>${stats.totalUsers}</h3>
+                        <div class="stat-icon-wrapper bg-primary-light text-primary">
+                            <i class="bi bi-people-fill"></i>
                         </div>
-                        <div class="stat-icon primary">
-                            <i class="bi bi-people"></i>
-                        </div>
+                    </div>
+                    <p class="stat-label">Total Users</p>
+                    <div class="stat-growth <c:if test='${stats.userGrowthPercentage < 0}'>text-danger</c:if><c:if test='${stats.userGrowthPercentage >= 0}'>text-success</c:if>">
+                        <i class="bi <c:if test='${stats.userGrowthPercentage < 0}'>bi-arrow-down</c:if><c:if test='${stats.userGrowthPercentage >= 0}'>bi-arrow-up</c:if>"></i>
+                        <fmt:formatNumber value="${Math.abs(stats.userGrowthPercentage)}" maxFractionDigits="1"/>% from last month
                     </div>
                 </div>
 
-                <div class="stat-card" onclick="location.href='${pageContext.request.contextPath}/admin/posts'">
-                    <i class="bi bi-info-circle stat-tooltip" data-bs-toggle="tooltip" title="Total posts created by users"></i>
+                <div class="stat-card">
                     <div class="stat-header">
-                        <div>
-                            <div class="stat-value">
-                                <c:choose>
-                                    <c:when test="${not empty stats.totalPosts}">
-                                        <fmt:formatNumber value="${stats.totalPosts}" type="number"/>
-                                    </c:when>
-                                    <c:otherwise>0</c:otherwise>
-                                </c:choose>
-                            </div>
-                            <div class="stat-label">Total Posts</div>
-                            <div class="stat-change ${stats.postGrowthRate >= 0 ? 'positive' : 'negative'}">
-                                <i class="bi bi-arrow-${stats.postGrowthRate >= 0 ? 'up' : 'down'}"></i>
-                                <fmt:formatNumber value="${stats.postGrowthRate}" type="number" maxFractionDigits="1"/>% from last month
-                            </div>
-                        </div>
-                        <div class="stat-icon success">
+                        <h3>${stats.totalPosts}</h3>
+                        <div class="stat-icon-wrapper bg-success-light text-success">
                             <i class="bi bi-file-post"></i>
                         </div>
                     </div>
-                </div>
-
-                <div class="stat-card" onclick="location.href='${pageContext.request.contextPath}/admin/posts?filter=pending'">
-                    <i class="bi bi-info-circle stat-tooltip" data-bs-toggle="tooltip" title="Posts waiting for admin approval"></i>
-                    <div class="stat-header">
-                        <div>
-                            <div class="stat-value">
-                                <c:choose>
-                                    <c:when test="${not empty stats.pendingApprovals}">
-                                        ${stats.pendingApprovals}
-                                    </c:when>
-                                    <c:otherwise>0</c:otherwise>
-                                </c:choose>
-                            </div>
-                            <div class="stat-label">Pending Approvals</div>
-                            <div class="stat-change ${stats.pendingApprovalsChange <= 0 ? 'positive' : 'negative'}">
-                                <i class="bi bi-arrow-${stats.pendingApprovalsChange <= 0 ? 'down' : 'up'}"></i>
-                                <fmt:formatNumber value="${Math.abs(stats.pendingApprovalsChange)}" type="number" maxFractionDigits="1"/>% from last week
-                            </div>
-                        </div>
-                        <div class="stat-icon warning">
-                            <i class="bi bi-clock"></i>
-                        </div>
+                    <p class="stat-label">Total Posts</p>
+                    <div class="stat-growth <c:if test='${stats.postGrowthPercentage < 0}'>text-danger</c:if><c:if test='${stats.postGrowthPercentage >= 0}'>text-success</c:if>">
+                        <i class="bi <c:if test='${stats.postGrowthPercentage < 0}'>bi-arrow-down</c:if><c:if test='${stats.postGrowthPercentage >= 0}'>bi-arrow-up</c:if>"></i>
+                        <fmt:formatNumber value="${Math.abs(stats.postGrowthPercentage)}" maxFractionDigits="1"/>% from last month
                     </div>
                 </div>
 
-                <div class="stat-card" onclick="location.href='${pageContext.request.contextPath}/admin/reports'">
-                    <i class="bi bi-info-circle stat-tooltip" data-bs-toggle="tooltip" title="Content reports requiring review"></i>
+                <div class="stat-card">
                     <div class="stat-header">
-                        <div>
-                            <div class="stat-value">
-                                <c:choose>
-                                    <c:when test="${not empty stats.activeReports}">
-                                        ${stats.activeReports}
-                                    </c:when>
-                                    <c:otherwise>0</c:otherwise>
-                                </c:choose>
-                            </div>
-                            <div class="stat-label">Active Reports</div>
-                            <div class="stat-change positive">
-                                <i class="bi bi-arrow-up"></i>
-                                <c:choose>
-                                    <c:when test="${not empty stats.newReportsToday}">
-                                        ${stats.newReportsToday}
-                                    </c:when>
-                                    <c:otherwise>0</c:otherwise>
-                                </c:choose> new today
-                            </div>
+                        <h3>${stats.pendingPosts}</h3>
+                        <div class="stat-icon-wrapper bg-warning-light text-warning">
+                            <i class="bi bi-clock-history"></i>
                         </div>
-                        <div class="stat-icon danger">
-                            <i class="bi bi-flag"></i>
+                    </div>
+                    <p class="stat-label">Pending Approvals</p>
+                    <div class="stat-growth text-secondary">
+                        <i class="bi bi-arrow-right"></i>
+                        Awaiting review
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <h3>${stats.activeReports}</h3>
+                        <div class="stat-icon-wrapper bg-danger-light text-danger">
+                            <i class="bi bi-flag-fill"></i>
                         </div>
+                    </div>
+                    <p class="stat-label">Active Reports</p>
+                    <div class="stat-growth text-danger">
+                        <i class="bi bi-exclamation-circle"></i>
+                        <c:out value="${stats.newReportsToday}"/> new today
                     </div>
                 </div>
             </div>
+            <!-- End Stats Grid -->
 
             <!-- Recent Activity -->
             <div class="activity-card">
@@ -737,12 +693,10 @@
                                     <div class="activity-icon ${activity.iconColorClass}">
                                         <i class="bi ${activity.iconClass}"></i>
                                     </div>
-                                    <div class="activity-content">
-                                        <h6>${activity.description}</h6>
-                                        <small>
-                                            <c:if test="${not empty activity.userName}">
-                                                ${activity.userName} • 
-                                            </c:if>
+                                    <div class="activity-info">
+                                        <p class="activity-description">${activity.description}</p>
+                                        <small class="activity-timestamp">
+                                            <i class="bi bi-clock"></i> 
                                             ${activity.timeAgo}
                                         </small>
                                     </div>
@@ -750,14 +704,9 @@
                             </c:forEach>
                         </c:when>
                         <c:otherwise>
-                            <div class="activity-item">
-                                <div class="activity-icon secondary">
-                                    <i class="bi bi-info-circle"></i>
-                                </div>
-                                <div class="activity-content">
-                                    <h6>No recent activity</h6>
-                                    <small>No activities recorded yet</small>
-                                </div>
+                            <div class="text-center p-4">
+                                <i class="bi bi-moon-stars fs-2 text-secondary"></i>
+                                <p class="mt-2 text-secondary">No recent activity recorded.</p>
                             </div>
                         </c:otherwise>
                     </c:choose>
@@ -935,14 +884,9 @@
                 
                 if (activities.length === 0) {
                     activityList.innerHTML = `
-                        <div class="activity-item">
-                            <div class="activity-icon secondary">
-                                <i class="bi bi-info-circle"></i>
-                            </div>
-                            <div class="activity-content">
-                                <h6>No recent activity</h6>
-                                <small>No activities recorded yet</small>
-                            </div>
+                        <div class="text-center p-4">
+                            <i class="bi bi-moon-stars fs-2 text-secondary"></i>
+                            <p class="mt-2 text-secondary">No recent activity recorded.</p>
                         </div>
                     `;
                     return;
@@ -953,10 +897,10 @@
                         <div class="activity-icon ${activity.iconColorClass}">
                             <i class="bi ${activity.iconClass}"></i>
                         </div>
-                        <div class="activity-content">
-                            <h6>${activity.description}</h6>
-                            <small>
-                                ${activity.userName ? activity.userName + ' • ' : ''}
+                        <div class="activity-info">
+                            <p class="activity-description">${activity.description}</p>
+                            <small class="activity-timestamp">
+                                <i class="bi bi-clock"></i> 
                                 ${activity.timeAgo}
                             </small>
                         </div>
@@ -1222,6 +1166,5 @@
     </style>
 </body>
 </html>
-
 
 

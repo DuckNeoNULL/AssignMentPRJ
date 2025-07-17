@@ -618,8 +618,8 @@
                         <h3>${stats.totalUsers}</h3>
                         <div class="stat-icon-wrapper bg-primary-light text-primary">
                             <i class="bi bi-people-fill"></i>
-                        </div>
-                    </div>
+                            </div>
+                            </div>
                     <p class="stat-label">Total Users</p>
                     <div class="stat-growth <c:if test='${stats.userGrowthPercentage < 0}'>text-danger</c:if><c:if test='${stats.userGrowthPercentage >= 0}'>text-success</c:if>">
                         <i class="bi <c:if test='${stats.userGrowthPercentage < 0}'>bi-arrow-down</c:if><c:if test='${stats.userGrowthPercentage >= 0}'>bi-arrow-up</c:if>"></i>
@@ -646,8 +646,8 @@
                         <h3>${stats.pendingPosts}</h3>
                         <div class="stat-icon-wrapper bg-warning-light text-warning">
                             <i class="bi bi-clock-history"></i>
-                        </div>
-                    </div>
+                            </div>
+                            </div>
                     <p class="stat-label">Pending Approvals</p>
                     <div class="stat-growth text-secondary">
                         <i class="bi bi-arrow-right"></i>
@@ -660,15 +660,15 @@
                         <h3>${stats.activeReports}</h3>
                         <div class="stat-icon-wrapper bg-danger-light text-danger">
                             <i class="bi bi-flag-fill"></i>
-                        </div>
-                    </div>
+                            </div>
+                            </div>
                     <p class="stat-label">Active Reports</p>
                     <div class="stat-growth text-danger">
                         <i class="bi bi-exclamation-circle"></i>
                         <c:out value="${stats.newReportsToday}"/> new today
+                        </div>
+                        </div>
                     </div>
-                </div>
-            </div>
             <!-- End Stats Grid -->
 
             <!-- Recent Activity -->

@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.Map;
 import java.util.HashMap;
+import model.Children;
 
 public class DashboardDAO {
     private static final Logger LOGGER = Logger.getLogger(DashboardDAO.class.getName());
@@ -401,6 +402,64 @@ public class DashboardDAO {
         return posts;
     }
 
+    public List<Posts> getAllPostsByStatus(String status) throws SQLException {
+        List<Posts> posts = new ArrayList<>();
+        String sql = "SELECT p.*, c.full_name as child_name "
+                   + "FROM Posts p JOIN Children c ON p.child_id = c.child_id "
+                   + "WHERE p.status = ? ORDER BY p.created_at DESC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, status);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Posts post = new Posts();
+                    post.setPostId(rs.getInt("post_id"));
+                    post.setTitle(rs.getString("title"));
+                    post.setContent(rs.getString("content"));
+                    post.setStatus(rs.getString("status"));
+                    post.setCreatedAt(rs.getTimestamp("created_at"));
+
+                    Children child = new Children();
+                    child.setChildId(rs.getInt("child_id"));
+                    child.setFullName(rs.getString("child_name"));
+                    post.setChild(child);
+                    
+                    posts.add(post);
+                }
+            }
+        }
+        return posts;
+    }
+
+    public boolean updatePostStatus(int postId, String status, int adminId) throws SQLException {
+        String sql = "UPDATE Posts SET status = ?, reviewed_by = ?, reviewed_at = GETDATE() WHERE post_id = ?";
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setInt(2, adminId);
+            ps.setInt(3, postId);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    public boolean updateReportStatus(int reportId, String status) throws SQLException {
+        String sql = "UPDATE ContentReports SET status = ? WHERE report_id = ?";
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setInt(2, reportId);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    public boolean deletePost(int postId) throws SQLException {
+        // We should probably mark as deleted instead of actually deleting
+        String sql = "DELETE FROM Posts WHERE post_id = ?";
+        try (Connection con = DBConnection.getConnection(); PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, postId);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
     /**
      * Get total reports count
      */
@@ -469,14 +528,23 @@ public class DashboardDAO {
      * Get active reports list
      */
     public List<ContentReports> getActiveReports(int limit) throws SQLException {
-        String sql = "SELECT TOP (?) report_id, reason, status, created_at FROM ContentReports WHERE status IN ('PENDING', 'REVIEWED') ORDER BY created_at DESC";
         List<ContentReports> reports = new ArrayList<>();
-        
+        String sql = "SELECT TOP (?) cr.report_id, cr.reason, cr.status, cr.created_at, " +
+                     "p.post_id, p.title AS post_title, " +
+                     "c.child_id, c.full_name AS child_name, c.parent_id AS author_parent_id, " +
+                     "reporter.parent_id AS reporter_parent_id, reporter.full_name AS reporter_name " +
+                     "FROM ContentReports cr " +
+                     "LEFT JOIN Posts p ON cr.post_id = p.post_id " +
+                     "LEFT JOIN Children c ON p.child_id = c.child_id " +
+                     "LEFT JOIN Parents reporter ON cr.reporter_id = reporter.parent_id " +
+                     "WHERE cr.status IN ('PENDING', 'REVIEWED') " +
+                     "ORDER BY cr.created_at DESC";
+
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+
             stmt.setInt(1, limit);
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     ContentReports report = new ContentReports();
@@ -484,11 +552,49 @@ public class DashboardDAO {
                     report.setReason(rs.getString("reason"));
                     report.setStatus(rs.getString("status"));
                     report.setCreatedAt(rs.getTimestamp("created_at"));
+
+                    // Null-safe mapping for Post
+                    Integer postId = (Integer) rs.getObject("post_id");
+                    if (postId != null) {
+                        Posts post = new Posts();
+                        post.setPostId(postId);
+                        post.setTitle(rs.getString("post_title"));
+                        report.setPost(post);
+
+                        // Null-safe mapping for Child
+                        Integer childId = (Integer) rs.getObject("child_id");
+                        if (childId != null) {
+                            Children child = new Children();
+                            child.setChildId(childId);
+                            child.setFullName(rs.getString("child_name"));
+                            post.setChild(child);
+
+                            // Null-safe mapping for Author Parent
+                            Integer authorParentId = (Integer) rs.getObject("author_parent_id");
+                            if (authorParentId != null) {
+                                Parents authorParent = new Parents();
+                                authorParent.setParentId(authorParentId);
+                                child.setParent(authorParent);
+                            }
+                        }
+                    }
+
+                    // Null-safe mapping for Reporter
+                    Integer reporterId = (Integer) rs.getObject("reporter_parent_id");
+                    if (reporterId != null) {
+                        Parents reporter = new Parents();
+                        reporter.setParentId(reporterId);
+                        reporter.setFullName(rs.getString("reporter_name"));
+                        report.setReporter(reporter);
+                    }
+                    
                     reports.add(report);
                 }
             }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "DAO error getting active reports", e);
+            throw e;
         }
-        
         return reports;
     }
 
@@ -518,6 +624,29 @@ public class DashboardDAO {
         settings.put("lastUpdated", new java.util.Date());
         
         return settings;
+    }
+
+    public Map<String, String> getAllSettings() throws SQLException {
+        Map<String, String> settings = new HashMap<>();
+        String sql = "SELECT setting_key, setting_value FROM Settings";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                settings.put(rs.getString("setting_key"), rs.getString("setting_value"));
+            }
+        }
+        return settings;
+    }
+
+    public boolean updateSetting(String key, String value) throws SQLException {
+        String sql = "UPDATE Settings SET setting_value = ? WHERE setting_key = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, value);
+            stmt.setString(2, key);
+            return stmt.executeUpdate() > 0;
+        }
     }
 }
 

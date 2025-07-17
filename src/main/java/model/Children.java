@@ -42,9 +42,9 @@ public class Children implements Serializable {
 
     @JoinColumn(name = "parent_id", referencedColumnName = "parent_id")
     @ManyToOne(optional = false)
-    private Parents parentId;
+    private Parents parent;
 
-    @OneToMany(mappedBy = "childId")
+    @OneToMany(mappedBy = "child")
     private List<Posts> postsList;
 
     public Children() {
@@ -83,12 +83,12 @@ public class Children implements Serializable {
         this.gender = gender;
     }
 
-    public Parents getParentId() {
-        return parentId;
+    public Parents getParent() {
+        return parent;
     }
 
-    public void setParentId(Parents parentId) {
-        this.parentId = parentId;
+    public void setParent(Parents parent) {
+        this.parent = parent;
     }
 
     public List<Posts> getPostsList() {

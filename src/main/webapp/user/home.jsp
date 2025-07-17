@@ -71,21 +71,23 @@
         </div>
 
         <div class="child-profiles">
-            <!-- This part should be populated dynamically from the database -->
-            <!-- Static Example 1 -->
-            <a href="${pageContext.request.contextPath}/kid/home" class="child-profile-card">
-                <img src="https://i.pravatar.cc/120?u=emma" alt="Emma's Avatar" class="avatar">
-                <h3>Emma</h3>
-            </a>
-
-            <!-- Static Example 2 -->
-            <a href="${pageContext.request.contextPath}/kid/home" class="child-profile-card">
-                <img src="https://i.pravatar.cc/120?u=liam" alt="Liam's Avatar" class="avatar">
-                <h3>Liam</h3>
-            </a>
+            <c:choose>
+                <c:when test="${not empty childrenList}">
+                    <c:forEach var="child" items="${childrenList}">
+                        <a href="${pageContext.request.contextPath}/kid/home?childId=${child.childId}" class="child-profile-card">
+                            <img src="https://i.pravatar.cc/120?u=${child.childId}" alt="${child.fullName}'s Avatar" class="avatar">
+                            <h3><c:out value="${child.fullName}"/></h3>
+                        </a>
+                    </c:forEach>
+                </c:when>
+                <c:otherwise>
+                    <p class="text-muted">No child profiles found. You can add one in account management.</p>
+                </c:otherwise>
+            </c:choose>
         </div>
 
         <div class="parent-actions">
+            <a href="#" class="btn btn-outline-primary"><i class="bi bi-person-plus-fill"></i> Add Child</a>
             <a href="#" class="btn btn-outline-primary"><i class="bi bi-person-circle"></i> Manage Account</a>
             <a href="${pageContext.request.contextPath}/logout" class="btn btn-outline-danger"><i class="bi bi-box-arrow-right"></i> Logout</a>
         </div>

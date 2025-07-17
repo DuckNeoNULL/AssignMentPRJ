@@ -98,8 +98,23 @@ CREATE INDEX IDX_ActivityLog_Timestamp ON dbo.activity_log(timestamp DESC);
 CREATE INDEX IDX_Posts_Status ON dbo.Posts(status);
 GO
 
+-- Settings Table
+CREATE TABLE dbo.Settings (
+    setting_key   NVARCHAR(100) PRIMARY KEY,
+    setting_value NVARCHAR(MAX) NOT NULL
+);
+GO
 
 -- 4) Seed Data
+
+-- Seed sample settings
+INSERT INTO dbo.Settings (setting_key, setting_value)
+VALUES
+('site_name', 'KidSocial Network'),
+('maintenance_mode', 'false'),
+('registration_enabled', 'true'),
+('max_posts_per_day', '10');
+GO
 
 -- Seed sample parents
 INSERT INTO dbo.Parents (email, password, full_name, phone, is_verified, role, status)

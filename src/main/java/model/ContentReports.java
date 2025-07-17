@@ -17,6 +17,7 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.Date;
 
 @Entity
@@ -44,11 +45,11 @@ public class ContentReports implements Serializable {
 
     @JoinColumn(name = "post_id", referencedColumnName = "post_id")
     @ManyToOne(optional = false)
-    private Posts postId;
+    private Posts post;
 
     @JoinColumn(name = "reporter_id", referencedColumnName = "parent_id")
     @ManyToOne(optional = false)
-    private Parents reporterId;
+    private Parents reporter;
 
     public ContentReports() {
     }
@@ -86,19 +87,19 @@ public class ContentReports implements Serializable {
         this.createdAt = createdAt;
     }
 
-    public Posts getPostId() {
-        return postId;
+    public Posts getPost() {
+        return post;
     }
 
-    public void setPostId(Posts postId) {
-        this.postId = postId;
+    public void setPost(Posts post) {
+        this.post = post;
     }
 
-    public Parents getReporterId() {
-        return reporterId;
+    public Parents getReporter() {
+        return reporter;
     }
 
-    public void setReporterId(Parents reporterId) {
-        this.reporterId = reporterId;
+    public void setReporter(Parents reporter) {
+        this.reporter = reporter;
     }
 }

@@ -45,6 +45,13 @@
                 Settings
             </a>
         </li>
+        <li class="nav-item">
+            <a href="${pageContext.request.contextPath}/" 
+               class="nav-link">
+                <i class="bi bi-house"></i>
+                Back to Home
+            </a>
+        </li>
         <li class="nav-item mt-4">
             <a href="${pageContext.request.contextPath}/logout" class="nav-link">
                 <i class="bi bi-box-arrow-right"></i>

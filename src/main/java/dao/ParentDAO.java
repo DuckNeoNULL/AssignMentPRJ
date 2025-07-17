@@ -243,8 +243,18 @@ public class ParentDAO {
         }
         return true; // Already exists
     }
+
+    public boolean updateUserStatus(int parentId, String status) throws SQLException {
+        String sql = "UPDATE Parents SET status = ? WHERE parent_id = ?";
+        try (Connection con = DBConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setInt(2, parentId);
+            return ps.executeUpdate() > 0;
+        }
+    }
     
-    public List<Parents> getAllParents() {
+    public List<Parents> getAllParents() throws SQLException {
         List<Parents> parentsList = new ArrayList<>();
         String sql = "SELECT parent_id, email, full_name, phone, is_verified, created_at, last_login, role, status FROM Parents";
         

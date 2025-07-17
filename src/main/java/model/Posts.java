@@ -76,7 +76,7 @@ public class Posts implements Serializable {
     @Size(max = 50)
     @Column(name = "status")
     private String status;
-    @OneToMany(mappedBy = "postId")
+    @OneToMany(mappedBy = "post")
     private List<ContentReports> contentReportsList;
     @JoinColumn(name = "child_id", referencedColumnName = "child_id")
     @ManyToOne(optional = false)

@@ -49,9 +49,9 @@
             <!-- 1. Welcome Area -->
             <header id="welcome" class="welcome-header">
                 <div class="greeting">
-                    <img src="https://i.pravatar.cc/80?u=emma" alt="Avatar" class="avatar">
+                    <img src="https://i.pravatar.cc/80?u=${child.childId}" alt="Avatar" class="avatar">
                     <div>
-                        <h1>Hi, Emma!</h1>
+                        <h1>Hi, <c:out value="${child.fullName}"/>!</h1>
                         <p class="fun-date-weather">
                             <i class="bi bi-calendar-heart"></i> Tuesday, July 17 &nbsp;&nbsp; 
                             <i class="bi bi-brightness-high-fill"></i> Sunny Day!
@@ -100,7 +100,7 @@
                             <i class="bi bi-file-earmark-plus-fill icon-bg"></i>
                             <h3>New Post</h3>
                             <p>Share a photo and text.</p>
-                            <button class="cta-button">Create</button>
+                            <a href="${pageContext.request.contextPath}/kid/create-post" class="cta-button">Create</a>
                         </div>
                         <div class="item-card">
                             <i class="bi bi-easel-fill icon-bg"></i>

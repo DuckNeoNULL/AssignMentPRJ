@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.Enumeration;
 
 @WebServlet(name = "AdminDashboardServlet", urlPatterns = {
     "/admin/dashboard", 
@@ -30,14 +31,14 @@ import java.util.logging.Level;
 })
 public class AdminDashboardServlet extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger(AdminDashboardServlet.class.getName());
-    private AdminDashboardService dashboardService;
+    private AdminDashboardService adminService;
     
     @Override
     public void init() throws ServletException {
         super.init();
         try {
-            dashboardService = new AdminDashboardService();
-            if (dashboardService == null) {
+            adminService = new AdminDashboardService();
+            if (adminService == null) {
                 throw new ServletException("Failed to create AdminDashboardService instance");
             }
             LOGGER.info("AdminDashboardServlet initialized successfully");
@@ -119,8 +120,8 @@ public class AdminDashboardServlet extends HttpServlet {
         
         try {
             // Get users overview data
-            Map<String, Object> usersOverview = dashboardService.getUsersOverview();
-            List<Parents> allUsers = dashboardService.getAllUsers();
+            Map<String, Object> usersOverview = adminService.getUsersOverview();
+            List<Parents> allUsers = adminService.getAllUsers();
             
             // Null safety checks
             if (usersOverview == null) {
@@ -147,19 +148,12 @@ public class AdminDashboardServlet extends HttpServlet {
             throws ServletException, IOException {
         
         try {
-            Map<String, Object> postsOverview = dashboardService.getPostsOverview();
-            List<Posts> pendingPosts = dashboardService.getPendingPosts(10);
-            
-            // Null safety checks
-            if (postsOverview == null) {
-                postsOverview = new HashMap<>();
-            }
-            if (pendingPosts == null) {
-                pendingPosts = new ArrayList<>();
-            }
-            
-            request.setAttribute("postsOverview", postsOverview);
+            List<Posts> pendingPosts = adminService.getPendingApprovalPosts();
             request.setAttribute("pendingPosts", pendingPosts);
+
+            Map<String, Object> postsOverview = adminService.getPostsOverview();
+            request.setAttribute("postsOverview", postsOverview);
+
             request.setAttribute("currentPage", "posts");
             request.setAttribute("pageTitle", "Content Management");
             
@@ -170,14 +164,138 @@ public class AdminDashboardServlet extends HttpServlet {
             request.getRequestDispatcher("/admin/error.jsp").forward(request, response);
         }
     }
-    
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        
+        String action = request.getParameter("action");
+
+        if ("updateSettings".equals(action)) {
+            updateSettings(request, response);
+            return;
+        }
+
+        if ("approve".equals(action) || "reject".equals(action)) {
+            handlePostAction(request, response);
+            return;
+        }
+
+        if ("dismiss_report".equals(action) || "delete_post".equals(action) || "suspend_user".equals(action)) {
+            handleReportAction(request, response);
+            return;
+        }
+        
+        String userAction = request.getParameter("userAction");
+        if (userAction != null) {
+            handleUserAction(request, response);
+            return;
+        }
+
+        response.sendRedirect(request.getContextPath() + "/admin/dashboard");
+    }
+
+    private void updateSettings(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        Enumeration<String> parameterNames = request.getParameterNames();
+        boolean allSuccess = true;
+        while (parameterNames.hasMoreElements()) {
+            String key = parameterNames.nextElement();
+            if (!key.equals("action")) {
+                String value = request.getParameter(key);
+                if (!adminService.updateSystemSetting(key, value)) {
+                    allSuccess = false;
+                }
+            }
+        }
+        if (allSuccess) {
+            response.sendRedirect(request.getContextPath() + "/admin/settings?status=success");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/admin/settings?status=error");
+        }
+    }
+
+    private void handleReportAction(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            String action = request.getParameter("action");
+            int reportId = Integer.parseInt(request.getParameter("reportId"));
+            boolean success = false;
+
+            switch (action) {
+                case "dismiss_report":
+                    success = adminService.dismissReport(reportId);
+                    break;
+                case "delete_post":
+                    int postId = Integer.parseInt(request.getParameter("postId"));
+                    success = adminService.deletePostAndDismissReport(postId, reportId);
+                    break;
+                case "suspend_user":
+                    int userId = Integer.parseInt(request.getParameter("userId"));
+                    success = adminService.suspendUserAndDismissReport(userId, reportId);
+                    break;
+            }
+
+            if (success) {
+                response.sendRedirect(request.getContextPath() + "/admin/reports?status=success");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/admin/reports?status=error");
+            }
+
+        } catch (NumberFormatException | NullPointerException e) {
+            LOGGER.log(Level.WARNING, "Invalid parameters for report action.", e);
+            response.sendRedirect(request.getContextPath() + "/admin/reports?status=error");
+        }
+    }
+
+    private void handlePostAction(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            int postId = Integer.parseInt(request.getParameter("postId"));
+            String action = request.getParameter("action");
+            HttpSession session = request.getSession(false);
+            int adminId = (int) session.getAttribute("parentId");
+
+            boolean success = false;
+            if ("approve".equals(action)) {
+                success = adminService.approvePost(postId, adminId);
+            } else if ("reject".equals(action)) {
+                success = adminService.rejectPost(postId, adminId);
+            }
+
+            if (success) {
+                response.sendRedirect(request.getContextPath() + "/admin/posts?status=success");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/admin/posts?status=error");
+            }
+        } catch (NumberFormatException | NullPointerException e) {
+            LOGGER.log(Level.WARNING, "Invalid parameters for post action.", e);
+            response.sendRedirect(request.getContextPath() + "/admin/posts?status=error");
+        }
+    }
+
+    private void handleUserAction(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        try {
+            int userId = Integer.parseInt(request.getParameter("userId"));
+            String action = request.getParameter("userAction");
+
+            boolean success = adminService.updateUserStatus(userId, action);
+
+            if (success) {
+                response.sendRedirect(request.getContextPath() + "/admin/users?status=success");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/admin/users?status=error");
+            }
+        } catch (NumberFormatException e) {
+            LOGGER.log(Level.WARNING, "Invalid user ID provided for user action.", e);
+            response.sendRedirect(request.getContextPath() + "/admin/users?status=error");
+        }
+    }
+
     private void handleReportsSection(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
         try {
             // Get reports overview data
-            Map<String, Object> reportsOverview = dashboardService.getReportsOverview();
-            List<ContentReports> activeReports = dashboardService.getActiveReports(10);
+            Map<String, Object> reportsOverview = adminService.getReportsOverview();
+            List<ContentReports> activeReports = adminService.getActiveReports(10);
             
             // Null safety checks
             if (reportsOverview == null) {
@@ -204,16 +322,12 @@ public class AdminDashboardServlet extends HttpServlet {
             throws ServletException, IOException {
         
         try {
-            Map<String, Object> systemSettings = dashboardService.getSystemSettings();
-            boolean systemHealth = dashboardService.isSystemHealthy();
-            
-            // Null safety checks
-            if (systemSettings == null) {
-                systemSettings = new HashMap<>();
-            }
-            
+            Map<String, String> systemSettings = adminService.getSystemSettings();
             request.setAttribute("systemSettings", systemSettings);
+            
+            boolean systemHealth = adminService.isSystemHealthy();
             request.setAttribute("systemHealth", systemHealth);
+
             request.setAttribute("currentPage", "settings");
             request.setAttribute("pageTitle", "System Settings");
             
@@ -230,8 +344,8 @@ public class AdminDashboardServlet extends HttpServlet {
         
         try {
             // Get dashboard statistics
-            DashboardStats stats = dashboardService.getDashboardStatistics();
-            List<AdminActivity> recentActivities = dashboardService.getRecentActivities(5);
+            DashboardStats stats = adminService.getDashboardStatistics();
+            List<AdminActivity> recentActivities = adminService.getRecentActivities(5);
             
             // Null safety checks
             if (stats == null) {
@@ -260,7 +374,7 @@ public class AdminDashboardServlet extends HttpServlet {
         response.setHeader("Content-Disposition", "attachment; filename=\"dashboard_export.csv\"");
         
         try {
-            String csvData = dashboardService.generateCSVExport();
+            String csvData = adminService.generateCSVExport();
             response.getWriter().write(csvData);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Error generating CSV export", e);
@@ -289,9 +403,9 @@ public class AdminDashboardServlet extends HttpServlet {
     }
     
     private void logActivitySafely(String type, String description, String email, String name, String ip) {
-        if (dashboardService != null) {
+        if (adminService != null) {
             try {
-                dashboardService.logActivity(type, description, email, name, ip);
+                adminService.logActivity(type, description, email, name, ip);
             } catch (Exception e) {
                 LOGGER.log(Level.WARNING, "Failed to log activity: " + description, e);
             }

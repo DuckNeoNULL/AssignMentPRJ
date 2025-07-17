@@ -114,9 +114,22 @@ public class AdminDashboardService {
     public List<Parents> getAllUsers() {
         try {
             return parentDAO.getAllParents();
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Service error getting all users", e);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error fetching all users", e);
             return new ArrayList<>();
+        }
+    }
+
+    public boolean updateUserStatus(int userId, String action) {
+        try {
+            String status = "SUSPENDED";
+            if ("activate".equals(action)) {
+                status = "ACTIVE";
+            }
+            return parentDAO.updateUserStatus(userId, status);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error updating user status", e);
+            return false;
         }
     }
 
@@ -178,6 +191,84 @@ public class AdminDashboardService {
         }
     }
 
+    public boolean suspendUser(int userId) {
+        try {
+            return parentDAO.updateUserStatus(userId, "SUSPENDED");
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Service error suspending user", e);
+            return false;
+        }
+    }
+
+    public boolean activateUser(int userId) {
+        try {
+            return parentDAO.updateUserStatus(userId, "ACTIVE");
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Service error activating user", e);
+            return false;
+        }
+    }
+
+    public List<Posts> getPendingApprovalPosts() {
+        try {
+            return dashboardDAO.getAllPostsByStatus("PENDING");
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Service error getting pending posts", e);
+            return new ArrayList<>();
+        }
+    }
+
+    public boolean approvePost(int postId, int adminId) {
+        try {
+            return dashboardDAO.updatePostStatus(postId, "APPROVED", adminId);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Service error approving post", e);
+            return false;
+        }
+    }
+
+    public boolean rejectPost(int postId, int adminId) {
+        try {
+            return dashboardDAO.updatePostStatus(postId, "REJECTED", adminId);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Service error rejecting post", e);
+            return false;
+        }
+    }
+
+    public boolean dismissReport(int reportId) {
+        try {
+            return dashboardDAO.updateReportStatus(reportId, "DISMISSED");
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Service error dismissing report", e);
+            return false;
+        }
+    }
+
+    public boolean deletePostAndDismissReport(int postId, int reportId) {
+        try {
+            // This should be a transaction
+            boolean postDeleted = dashboardDAO.deletePost(postId);
+            boolean reportDismissed = dashboardDAO.updateReportStatus(reportId, "RESOLVED_DELETED");
+            return postDeleted && reportDismissed;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Service error deleting post and dismissing report", e);
+            return false;
+        }
+    }
+
+    public boolean suspendUserAndDismissReport(int userId, int reportId) {
+        try {
+            // This should be a transaction
+            boolean userSuspended = parentDAO.updateUserStatus(userId, "SUSPENDED");
+            boolean reportDismissed = dashboardDAO.updateReportStatus(reportId, "RESOLVED_SUSPENDED");
+            return userSuspended && reportDismissed;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Service error suspending user and dismissing report", e);
+            return false;
+        }
+    }
+
     /**
      * Get reports overview data
      */
@@ -207,12 +298,21 @@ public class AdminDashboardService {
         }
     }
 
-    public Map<String, Object> getSystemSettings() {
+    public Map<String, String> getSystemSettings() {
         try {
-            return dashboardDAO.getSystemSettings();
+            return dashboardDAO.getAllSettings();
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Failed to get system settings", e);
-            return Collections.emptyMap();
+            LOGGER.log(Level.SEVERE, "Service error getting system settings", e);
+            return new HashMap<>();
+        }
+    }
+
+    public boolean updateSystemSetting(String key, String value) {
+        try {
+            return dashboardDAO.updateSetting(key, value);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Service error updating system setting", e);
+            return false;
         }
     }
 

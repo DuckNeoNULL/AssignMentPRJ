@@ -59,7 +59,7 @@ public class AdminActivity {
         }
         return timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
-
+    
     public String getIconClass() { return iconClass; }
     public void setIconClass(String iconClass) { this.iconClass = iconClass; }
     

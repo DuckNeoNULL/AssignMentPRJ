@@ -1,0 +1,4 @@
+## Tương tác Frontend & JSP
+- **Tách biệt logic:** Giữ cho các tệp JSP chứa mã Java ở mức tối thiểu. Ưu tiên sử dụng JSTL và Expression Language (`${...}`).
+- **Tương tác động:** Với các chức năng như thích, bình luận, hãy dùng JavaScript (AJAX) để gọi đến các API Servlet riêng biệt trả về dữ liệu JSON, tránh tải lại toàn bộ trang.
+- **Đường dẫn tài nguyên:** Luôn sử dụng `${pageContext.request.contextPath}` để đảm bảo đường dẫn đến các tệp CSS, JS, và hình ảnh luôn chính xác.

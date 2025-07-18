@@ -45,5 +45,19 @@
             <a href="${pageContext.request.contextPath}/kid/home?childId=${sessionScope.currentChild.childId}" class="btn btn-link d-block mt-3">Go Back</a>
         </form>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const postContent = localStorage.getItem('postContent');
+            if (postContent) {
+                const contentTextArea = document.getElementById('post-content'); // Make sure your textarea has this ID
+                if(contentTextArea) {
+                    contentTextArea.value = postContent;
+                }
+                // Clear the stored content so it doesn't reappear on a normal page load
+                localStorage.removeItem('postContent');
+            }
+        });
+    </script>
 </body>
 </html> 

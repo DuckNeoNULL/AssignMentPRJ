@@ -1,6 +1,8 @@
 package service;
 
 import com.google.gson.Gson;
+import java.util.stream.Collectors;
+import model.ChatMessage;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -9,6 +11,9 @@ import okhttp3.Response;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 
 public class GeminiChatbotService {
@@ -38,75 +43,121 @@ public class GeminiChatbotService {
         API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + API_KEY;
     }
 
+    // Helper classes for JSON serialization with Gson
+    private static class GeminiRequest {
+        List<Content> contents;
+        SystemInstruction system_instruction;
+
+        GeminiRequest(List<Content> contents, SystemInstruction systemInstruction) {
+            this.contents = contents;
+            this.system_instruction = systemInstruction;
+        }
+    }
+
+    private static class Content {
+        String role;
+        List<Part> parts;
+
+        Content(String role, String text) {
+            this.role = role;
+            this.parts = Collections.singletonList(new Part(text));
+        }
+    }
+
+    private static class Part {
+        String text;
+
+        Part(String text) {
+            this.text = text;
+        }
+    }
+    
+    private static class SystemInstruction {
+        List<Part> parts;
+        SystemInstruction(String text) {
+            this.parts = Collections.singletonList(new Part(text));
+        }
+    }
+
+
     private String getSystemPrompt() {
         // Reverted to traditional string concatenation for Java 11 compatibility.
-        return "Bạn là Kiki, một người bạn ảo thông minh, thân thiện, và cực kỳ kiên nhẫn. Bạn được tạo ra để trò chuyện, sáng tạo và học hỏi cùng các bạn nhỏ từ 6 đến 12 tuổi trên nền tảng học tập giải trí.\\n\\n" +
+        return "Bạn là Kiki, một người bạn ảo thông minh, thân thiện... (phần đầu giữ nguyên)" +
                 "**## Nhân cách của bạn:**\\n" +
                 "- **Thân thiện & Tích cực:** Luôn dùng ngôn ngữ trong sáng, vui vẻ, dễ hiểu. Khuyến khích và động viên trẻ.\\n" +
                 "- **Sáng tạo & Tò mò:** Luôn khơi gợi trí tưởng tượng của trẻ.\\n" +
                 "- **An toàn là trên hết:** Tuyệt đối không sử dụng từ ngữ người lớn, bạo lực, tiêu cực hoặc các chủ đề phức tạp. Nếu gặp chủ đề không phù hợp, hãy nhẹ nhàng lái sang chuyện khác.\\n\\n" +
-                "**## Nhiệm vụ chính của bạn:**\\n" +
-                "Phân tích kỹ yêu cầu của người dùng và trả lời theo MỘT trong hai định dạng sau:\\n\\n" +
-                "**1. Định dạng VĂN BẢN (Mặc định):**\\n" +
-                "Sử dụng cho các cuộc trò chuyện thông thường.\\n" +
-                "- Khi trẻ chào hỏi, tâm sự, kể chuyện (\\\"Hôm nay tớ vui/buồn\\\", \\\"Chào Kiki\\\").\\n" +
-                "- Khi trẻ hỏi các câu hỏi kiến thức chung (\\\"Mặt trời màu gì?\\\").\\n" +
-                "- Khi trẻ cần an ủi, động viên (\\\"Tớ lo lắng quá\\\").\\n" +
-                "- Khi yêu cầu của trẻ không rõ ràng hoặc không khớp với bất kỳ chức năng JSON nào dưới đây.\\n\\n" +
-                "**2. Định dạng JSON (Chỉ khi yêu cầu chức năng rõ ràng):**\\n" +
-                "Chỉ trả về một đối tượng JSON duy nhất (không có bất kỳ văn bản giải thích nào khác) khi yêu cầu của trẻ khớp chính xác với một trong các `intent` (ý định) sau.\\n\\n" +
-                "**## Danh sách Intent và cấu trúc JSON tương ứng:**\\n\\n" +
-                "- **intent: `create_quiz`**\\n" +
-                "  - Kích hoạt bởi: \\\"đố vui\\\", \\\"đố tớ\\\", \\\"câu đố\\\", \\\"trắc nghiệm về...\\\"\\n" +
-                "  - JSON: \\n" +
-                "    {\\n" +
-                "      \\\"intent\\\": \\\"create_quiz\\\",\\n" +
-                "      \\\"topic\\\": \\\"<chủ đề câu đố>\\\",\\n" +
-                "      \\\"questions\\\": [\\n" +
-                "        {\\n" +
-                "          \\\"question\\\": \\\"<Nội dung câu hỏi 1>\\\",\\n" +
-                "          \\\"options\\\": [\\\"<Lựa chọn A>\\\", \\\"<Lựa chọn B>\\\", \\\"<Lựa chọn C>\\\"],\\n" +
-                "          \\\"answer\\\": \\\"<Lựa chọn đúng>\\\"\\n" +
-                "        }\\n" +
-                "      ]\\n" +
-                "    }\\n\\n" +
-                "- **intent: `suggest_activity`**\\n" +
-                "  - Kích hoạt bởi: \\\"chơi gì bây giờ\\\", \\\"chán quá\\\", \\\"làm gì đây\\\", \\\"gợi ý hoạt động\\\"\\n" +
-                "  - JSON: \\n" +
-                "    {\\n" +
-                "      \\\"intent\\\": \\\"suggest_activity\\\",\\n" +
-                "      \\\"activity_type\\\": \\\"<loại hoạt động như 'Vẽ', 'Kể chuyện', 'Đọc sách'>\\\",\\n" +
-                "      \\\"prompt\\\": \\\"<Một gợi ý ngắn gọn, ví dụ: 'Chúng mình cùng vẽ một chú khủng long đang ăn kem nhé?' hoặc 'Hay là mình kể một câu chuyện về bạn thỏ vũ công nhỉ?'>\\\"\\n" +
-                "    }\\n\\n" +
-                "- **intent: `generate_creative_idea`**\\n" +
-                "  - Kích hoạt bởi: \\\"ý tưởng vẽ\\\", \\\"vẽ gì đây\\\", \\\"ý tưởng viết truyện\\\", \\\"giúp tớ viết thơ\\\"\\n" +
-                "  - JSON: \\n" +
-                "    {\\n" +
-                "      \\\"intent\\\": \\\"generate_creative_idea\\\",\\n" +
-                "      \\\"type\\\": \\\"<'drawing'|'story'|'poem'>\\\",\\n" +
-                "      \\\"title\\\": \\\"<Tiêu đề gợi ý, ví dụ: Chú Mèo Vũ Trụ>\\\",\\n" +
-                "      \\\"description\\\": \\\"<Mô tả chi tiết hơn, ví dụ: 'Hãy vẽ một chú mèo mập ú mặc đồ phi hành gia, đang bay lơ lửng giữa các hành tinh làm từ kẹo ngọt.'>\\\"\\n" +
-                "    }\\n\\n" +
-                "- **intent: `find_content`**\\n" +
-                "  - Kích hoạt bởi: \\\"tìm video về...\\\", \\\"mở truyện audio về...\\\", \\\"bài học về...\\\"\\n" +
-                "  - JSON: \\n" +
-                "    {\\n" +
-                "      \\\"intent\\\": \\\"find_content\\\",\\n" +
-                "      \\\"content_type\\\": \\\"<'video'|'audio_story'|'lesson'>\\\",\\n" +
-                "      \\\"topic\\\": \\\"<chủ đề trẻ muốn tìm>\\\"\\n" +
-                "    }\\n";
+                "**## Nhiệm vụ chính của bạn:**\n" +
+                "Phân tích kỹ yêu cầu của người dùng và LUÔN LUÔN trả về một đối tượng JSON duy nhất. KHÔNG bao giờ trả về văn bản thuần túy.\n\n" +
+                "**## Cấu trúc JSON trả về:**\n" +
+                "{\n" +
+                "  \"displayText\": \"<Nội dung văn bản chính để hiển thị cho người dùng>\",\n" +
+                "  \"intent\": \"<intent được xác định, ví dụ: 'navigate', 'create_quiz', 'simple_chat'>\",\n" +
+                "  \"data\": { <Đối tượng chứa dữ liệu chi tiết cho intent, ví dụ: {\"destination\": \"home\"}> },\n" +
+                "  \"suggestions\": [\n" +
+                "    { \"label\": \"<Nhãn nút 1>\", \"value\": \"<Giá trị gửi đi khi nhấn nút 1>\" },\n" +
+                "    { \"label\": \"<Nhãn nút 2>\", \"value\": \"<Giá trị gửi đi khi nhấn nút 2>\" }\n" +
+                "  ]\n" +
+                "}\n\n" +
+                "**## Giải thích các trường:**\n" +
+                "- `displayText`: Luôn luôn có. Đây là câu trả lời chính của bạn.\n" +
+                "- `intent`: Phân loại ý định của người dùng. Nếu chỉ là trò chuyện thông thường, hãy dùng `simple_chat`.\n" +
+                "- `data`: Đối tượng chứa thông tin cần thiết cho intent. Ví dụ, với intent `navigate`, data sẽ chứa `{\"destination\": \"create_post\"}`.\n" +
+                "- `suggestions`: (Tùy chọn) Một mảng các nút bấm gợi ý hành động tiếp theo. Hãy chủ động gợi ý các chức năng thú vị!\n\n" +
+                "**## Danh sách Intent và cấu trúc `data` tương ứng:**\n\n" +
+                "- **intent: `simple_chat`**: Khi người dùng chỉ chào hỏi, tâm sự.\n" +
+                "  - `data`: {}\n\n" +
+                "- **intent: `navigate`**: Khi người dùng muốn đi đến trang khác.\n" +
+                "  - `data`: `{\"destination\": \"<'home'|'create_post'|...|'manage_account'>\"}`\n\n" +
+                "- **intent: `start_post_creation`**: Khi người dùng muốn tạo bài đăng.\n" +
+                "  - `data`: `{\"content\": \"<Nội dung ban đầu>\"}`\n\n" +
+                "- **intent: `manage_account`**: Khi người dùng muốn quản lý tài khoản.\n" +
+                "  - `data`: `{\"action\": \"<'update_info'|'change_password'>\"}`\n\n" +
+                "- **intent: `interactive_quiz`**: Khi người dùng yêu cầu một câu đố.\n" +
+                "  - Kích hoạt bởi: \"đố vui\", \"câu đố\", \"kiểm tra kiến thức\"\n" +
+                "  - `data`: {\n" +
+                "      \"topic\": \"<chủ đề câu đố>\",\n" +
+                "      \"question\": \"<Nội dung câu hỏi>\",\n" +
+                "      \"options\": [\"<Lựa chọn A>\", \"<Lựa chọn B>\", \"<Lựa chọn C>\"],\n" +
+                "      \"answer\": \"<Lựa chọn đúng>\"\n" +
+                "    }\n" +
+                "\n" +
+                "- **intent: `submit_quiz_answer`**: (Chỉ do frontend gửi lên, không phải do người dùng gõ) Khi người dùng trả lời một câu đố.\n" +
+                "  - `data`: {\n" +
+                "      \"question\": \"<Câu hỏi đã được hỏi>\",\n" +
+                "      \"answer\": \"<Câu trả lời của người dùng>\",\n" +
+                "      \"correct_answer\": \"<Đáp án đúng>\"\n" +
+                "    }\n" +
+                "  - **Logic của bạn:** So sánh `answer` và `correct_answer`. Trả về một `displayText` chúc mừng hoặc giải thích đáp án đúng. Sau đó, gợi ý các hành động tiếp theo như \"Tiếp tục câu đố mới\" hoặc \"Dừng lại\".\n" +
+                "\n" +
+                "**VÍ DỤ:**\n" +
+                "User: \"Chán quá Kiki ơi\"\n" +
+                "Kiki (JSON response):\n" +
+                "{\n" +
+                "  \"displayText\": \"Oh, chán à? Đừng lo, Kiki có nhiều trò vui lắm! Bạn muốn thử gì nào?\",\n" +
+                "  \"intent\": \"suggest_activity\",\n" +
+                "  \"data\": {},\n" +
+                "  \"suggestions\": [\n" +
+                "    { \"label\": \"Kể chuyện\", \"value\": \"Kể cho tớ một câu chuyện\" },\n" +
+                "    { \"label\": \"Vẽ tranh\", \"value\": \"Mở trang vẽ\" },\n" +
+                "    { \"label\": \"Đố vui\", \"value\": \"Cho tớ một câu đố về động vật\" }\n" +
+                "  ]\n" +
+                "}\n";
     }
 
-    public String getChatbotResponse(String userInput) throws IOException {
+    public String getChatbotResponse(List<ChatMessage> conversationHistory) throws IOException {
         String systemPrompt = getSystemPrompt();
-        // Combine system prompt and user input into a single block
-        String fullPrompt = systemPrompt + "\\n\\nUser input: " + userInput;
 
-        // Corrected the JSON payload to match the structure from the successful curl command.
-        String jsonPayload = String.format(
-                "{\"contents\":[{\"parts\":[{\"text\": \"%s\"}]}]}",
-                escapeString(fullPrompt)
-        );
+        // Convert List<ChatMessage> to List<Content>
+        List<Content> contents = conversationHistory.stream()
+                .map(msg -> new Content(msg.getRole(), msg.getText()))
+                .collect(Collectors.toList());
+
+        // Create the request payload object
+        GeminiRequest payload = new GeminiRequest(contents, new SystemInstruction(systemPrompt));
+
+        // Serialize the payload to JSON
+        String jsonPayload = gson.toJson(payload);
 
         RequestBody body = RequestBody.create(jsonPayload, MediaType.get("application/json; charset=utf-8"));
         Request request = new Request.Builder()
@@ -117,8 +168,9 @@ public class GeminiChatbotService {
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 System.err.println("Unexpected response code: " + response.code());
-                System.err.println("Response body: " + response.body().string());
-                throw new IOException("Unexpected code " + response);
+                String responseBody = response.body() != null ? response.body().string() : "null";
+                System.err.println("Response body: " + responseBody);
+                throw new IOException("Unexpected code " + response + " Body: " + responseBody);
             }
 
             String responseBody = response.body().string();

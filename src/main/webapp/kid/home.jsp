@@ -121,24 +121,18 @@
                 <section id="learn" class="content-section">
                     <h2 class="section-title"><i class="bi bi-lightbulb-fill"></i> Học & Vui</h2>
                     <div class="card-deck">
-                        <div class="item-card">
+                        <a href="${pageContext.request.contextPath}/stories/audio" class="item-card">
                             <i class="bi bi-headphones icon-bg"></i>
                             <h3>Truyện audio</h3>
                             <p>Nghe các câu chuyện thú vị.</p>
-                            <button class="cta-button">Nghe</button>
-                        </div>
-                        <div class="item-card">
-                            <i class="bi bi-puzzle-fill icon-bg"></i>
-                            <h3>Trắc nghiệm trí tuệ</h3>
-                            <p>Thử thách trí tuệ của bạn.</p>
-                            <button class="cta-button">Chơi</button>
-                        </div>
-                        <div class="item-card">
+                            <span class="cta-button">Nghe</span>
+                        </a>
+                        <a href="${pageContext.request.contextPath}/videos" class="item-card">
                             <i class="bi bi-film icon-bg"></i>
                             <h3>Video học tập</h3>
                             <p>Xem các video ngắn, vui vẻ.</p>
-                            <button class="cta-button">Xem</button>
-                        </div>
+                            <span class="cta-button">Xem</span>
+                        </a>
                     </div>
                 </section>
 

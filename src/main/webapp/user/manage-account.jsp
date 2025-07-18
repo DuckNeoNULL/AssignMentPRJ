@@ -31,7 +31,7 @@
         </c:if>
 
         <!-- Update Profile Form -->
-        <form action="${pageContext.request.contextPath}/user/home" method="post" class="mb-5">
+        <form id="update-profile-form" action="${pageContext.request.contextPath}/user/home" method="post" class="mb-5">
             <input type="hidden" name="action" value="update_profile">
             <h4>Thông tin cá nhân</h4>
             <div class="mb-3">
@@ -52,7 +52,7 @@
         <hr>
 
         <!-- Change Password Form -->
-        <form action="${pageContext.request.contextPath}/user/home" method="post" class="mt-5">
+        <form id="change-password-form" action="${pageContext.request.contextPath}/user/home" method="post" class="mt-5">
             <input type="hidden" name="action" value="change_password">
             <h4>Đổi mật khẩu</h4>
             <div class="mb-3">
@@ -74,5 +74,30 @@
             <a href="${pageContext.request.contextPath}/user/home" class="btn btn-secondary">Quay lại</a>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const action = localStorage.getItem('accountAction');
+            if (action) {
+                let targetForm;
+                if (action === 'update_info') {
+                    targetForm = document.getElementById('update-profile-form');
+                } else if (action === 'change_password') {
+                    targetForm = document.getElementById('change-password-form');
+                }
+
+                if (targetForm) {
+                    targetForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetForm.style.transition = 'background-color 0.5s ease';
+                    targetForm.style.backgroundColor = '#e7f3ff'; // A light blue highlight
+                    setTimeout(() => {
+                        targetForm.style.backgroundColor = '';
+                    }, 2000); // Highlight for 2 seconds
+                }
+
+                localStorage.removeItem('accountAction');
+            }
+        });
+    </script>
 </body>
 </html> 

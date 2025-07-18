@@ -83,7 +83,7 @@
         <dependency>
             <groupId>org.eclipse.persistence</groupId>
             <artifactId>org.eclipse.persistence.jpa</artifactId>
-            <version>4.0.2</version>
+            <version>3.0.2</version>
         </dependency>
         <dependency>
             <groupId>jakarta.mail</groupId>

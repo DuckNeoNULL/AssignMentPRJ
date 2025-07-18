@@ -1,0 +1,5 @@
+## Kiến trúc Backend (MVC)
+- **Controller (`/controller`):** Chỉ chứa các Servlets. Servlets phải gọn nhẹ, chỉ dùng để nhận request, gọi Service và điều hướng tới View (JSP).
+- **Service (`/service`):** Chứa toàn bộ logic nghiệp vụ (business logic). Không được chứa các đối tượng `request` hay `response` của Servlet.
+- **DAO (`/dao`):** Data Access Object. Là lớp duy nhất được phép thực hiện các truy vấn SQL trực tiếp tới cơ sở dữ liệu.
+- **Model (`/model`):** Chứa các lớp POJO/Entity, ánh xạ tới các bảng trong cơ sở dữ liệu.

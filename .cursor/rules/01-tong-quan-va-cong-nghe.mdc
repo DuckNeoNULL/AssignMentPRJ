@@ -1,0 +1,6 @@
+## Tổng quan & Công nghệ
+- **Tên dự án:** KidSocialNetwork, một mạng xã hội an toàn cho trẻ em.
+- **Backend:** Java với Jakarta EE (Servlet 4.0+, JSP 3.0).
+- **Frontend:** JavaServer Pages (JSP) kết hợp với JSTL, CSS và JavaScript.
+- **Cơ sở dữ liệu:** SQL, tương tác qua JDBC.
+- **Build & Dependencies:** Apache Maven (`pom.xml`).

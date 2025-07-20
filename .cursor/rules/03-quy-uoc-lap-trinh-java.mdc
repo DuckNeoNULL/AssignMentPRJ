@@ -1,0 +1,6 @@
+## Quy ước Lập trình Java
+- **Tên biến, hàm:** Sử dụng `camelCase`.
+- **Tên lớp, interface:** Sử dụng `PascalCase`.
+- **Hằng số:** Sử dụng `SNAKE_CASE_UPPER`.
+- **Servlet Mapping:** Sử dụng URL pattern có nghĩa, ví dụ `/admin/dashboard`, `/posts/create`.
+- **Xử lý Exception:** Sử dụng `try-catch-finally` và đóng tất cả tài nguyên (Connection, PreparedStatement, ResultSet) một cách an toàn.
